@@ -49,6 +49,80 @@ Built around **MediaPipe hand tracking, HTML5 Canvas, JavaScript, Web APIs, and 
 
 ---
 
+# 🖼️ Product Gallery
+
+## 01 — Canvas Studio
+
+<p align="center">
+  <img src="./screenshots/1_Drawing.png" alt="AURA Studio Canvas Studio" width="100%">
+</p>
+
+---
+
+## 02 — Tools Kit
+
+<p align="center">
+  <img src="./screenshots/2_Tools_Kit.png" alt="AURA Studio Tools Kit" width="100%">
+</p>
+
+---
+
+## 03 — Radial Shortcuts
+
+<p align="center">
+  <img src="./screenshots/3_Radial_Shortcuts.png" alt="AURA Studio Radial Shortcuts" width="100%">
+</p>
+
+---
+
+## 04 — Zoom & Pan
+
+<p align="center">
+  <img src="./screenshots/4_Zoom_PAN.png" alt="AURA Studio Zoom and Pan" width="100%">
+</p>
+
+---
+
+## 05 — Gesture Lab
+
+<p align="center">
+  <img src="./screenshots/5_Gesture_Labs.png" alt="AURA Studio Gesture Lab" width="100%">
+</p>
+
+---
+
+## 06 — Magic Engine
+
+<p align="center">
+  <img src="./screenshots/6_Magic_Engine.png" alt="AURA Studio Magic Engine" width="100%">
+</p>
+
+---
+
+## 07 — Replay
+
+<p align="center">
+  <img src="./screenshots/7_Replay.png" alt="AURA Studio Replay" width="100%">
+</p>
+
+---
+
+## 08 — Analytics
+
+<p align="center">
+  <img src="./screenshots/8_Analytics.png" alt="AURA Studio Analytics Dashboard" width="100%">
+</p>
+
+---
+
+## 09 — Calibration
+
+<p align="center">
+  <img src="./screenshots/9_Calibration.png" alt="AURA Studio Calibration" width="100%">
+</p>
+
+---
+
 # ⚡ What Makes AURA Different?
 
 AURA combines several layers of interaction into one system:
@@ -423,80 +497,6 @@ AURA-STUDIO/
 ├── AuraDrawingVideo.mp4
 └── README.md
 ```
-
----
-
-# 🖼️ Product Gallery
-
-## 01 — Canvas Studio
-
-<p align="center">
-  <img src="./screenshots/1_Drawing.png" alt="AURA Studio Canvas Studio" width="100%">
-</p>
-
----
-
-## 02 — Tools Kit
-
-<p align="center">
-  <img src="./screenshots/2_Tools_Kit.png" alt="AURA Studio Tools Kit" width="100%">
-</p>
-
----
-
-## 03 — Radial Shortcuts
-
-<p align="center">
-  <img src="./screenshots/3_Radial_Shortcuts.png" alt="AURA Studio Radial Shortcuts" width="100%">
-</p>
-
----
-
-## 04 — Zoom & Pan
-
-<p align="center">
-  <img src="./screenshots/4_Zoom_PAN.png" alt="AURA Studio Zoom and Pan" width="100%">
-</p>
-
----
-
-## 05 — Gesture Lab
-
-<p align="center">
-  <img src="./screenshots/5_Gesture_Labs.png" alt="AURA Studio Gesture Lab" width="100%">
-</p>
-
----
-
-## 06 — Magic Engine
-
-<p align="center">
-  <img src="./screenshots/6_Magic_Engine.png" alt="AURA Studio Magic Engine" width="100%">
-</p>
-
----
-
-## 07 — Replay
-
-<p align="center">
-  <img src="./screenshots/7_Replay.png" alt="AURA Studio Replay" width="100%">
-</p>
-
----
-
-## 08 — Analytics
-
-<p align="center">
-  <img src="./screenshots/8_Analytics.png" alt="AURA Studio Analytics Dashboard" width="100%">
-</p>
-
----
-
-## 09 — Calibration
-
-<p align="center">
-  <img src="./screenshots/9_Calibration.png" alt="AURA Studio Calibration" width="100%">
-</p>
 
 ---
 
