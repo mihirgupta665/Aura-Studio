@@ -1,22 +1,26 @@
 # AURA — Web-Based AI Hand Gesture Sketchpad Studio
 
-AURA is an interactive, zero-latency client-side air drawing application powered by **MediaPipe WebAssembly (WASM)** and **Streamlit**. It allows users to paint, draw shapes, and control canvas states in real time through webcams using advanced hand gesture classification algorithms.
+AURA is an interactive, zero-latency client-side air drawing application powered by **MediaPipe WebAssembly (WASM)**. It allows users to paint, draw shapes, and control canvas states in real time through webcams using advanced hand gesture classification algorithms.
+
+The application is structured to run fully client-side and can be hosted as a **static website on Vercel** or served via a **Streamlit wrapper**.
 
 ---
 
 ## ⚡ Key Highlights
 *   **100% Edge Processing (Zero-Latency)**: Coordinates calculations run fully client-side in the browser using WebAssembly. No camera streams or images are transmitted to servers, ensuring maximum privacy and instant feedback.
-*   **Drawing-Safe Calibrations**: Slider parameters communicate directly with JavaScript tracking loops. Adjusting thresholds (e.g. tracking boundaries, smoothing factors) updates WASM thresholds dynamically at 60fps **without resetting your camera or wiping your drawing**.
+*   **Drawing-Safe Calibrations**: Slider parameters communicate directly with JavaScript tracking loops. Adjusting thresholds (e.g., tracking boundaries, smoothing factors) updates WASM thresholds dynamically at 60fps **without resetting your camera or wiping your drawing**.
 *   **CAD Shape Assistant**: Pinch and drag to draw perfect geometric vectors (lines, circles, rectangles) with real-time vector guideline previews, stamped onto the canvas when the pinch is released.
+*   **Zero-Config Deployments**: Bundled into a standalone, single-page application ready to be hosted instantly on Vercel, Netlify, or Streamlit Cloud.
 
 ---
 
 ## 🛠️ Technology Stack
 1.  **Core Vision Processing**: [MediaPipe Hands](https://github.com/google/mediapipe) (WASM compilation) for 21-point hand skeleton tracking.
-2.  **UI & Server Wrapper**: [Streamlit](https://streamlit.io/) for hosting, layouts, theme styling, and routing.
+2.  **Web App Preset**: Pure HTML5, CSS3, and JavaScript compiled into a single-file application.
 3.  **Drawing Engine**: HTML5 `<canvas>` API with custom pixel-buffer caching for vector previews.
 4.  **UI Styling**: CSS3 Custom variables with Glassmorphic backdrops and layout spacing.
 5.  **Audio HUD Feedbacks**: Web Audio API Oscillators synthesizing custom sound clicks and camera shutter effects.
+6.  **Server Wrapper**: [Streamlit](https://streamlit.io/) wrapper included for Python environment compatibility.
 
 ---
 
@@ -24,10 +28,12 @@ AURA is an interactive, zero-latency client-side air drawing application powered
 
 | Gesture | Finger State | Action / Trigger |
 | :--- | :--- | :--- |
-| **Hover Pointer** | Fingers extended separate | glowing tracking dot follows your index finger |
+| **Hover Pointer** | Fingers extended separate | Glowing tracking dot follows your index finger |
 | **Pinch-to-Sketch** | Index Tip pinched to Thumb Tip | Paints paths (Freehand, Lines, Circles, Rectangles) |
-| **Fist Screenshot** | All 5 fingers closed in tight fist | Holds for 1.5s to snap screenshot of your canvas to gallery |
-| **Undo Last stroke** | UI Click button trigger | Pops last coordinate snapshot to revert canvas state |
+| **Fist Capture** | All 5 fingers closed in tight fist | Holds for 1.5s to snap screenshot of your canvas to gallery |
+| **Undo Last stroke** | Thumbs Down | Pops last coordinate snapshot to revert canvas state |
+| **Confirm Shape** | Thumbs Up | Confirms and stamps active CAD shape assist guides |
+| **Pause Tracking** | Open Palm | Pauses webcam coordination loop until released |
 
 ---
 
@@ -71,26 +77,40 @@ This lets micro-hand movements inside the bounding box reach the edges of the dr
 
 ## 🚀 Setup & Local Execution
 
-### 1. Prerequisite
-Verify that you have Python 3.8+ installed on your system.
-
-### 2. Install Dependencies
-Clone this repository, navigate to the directory, and install dependencies from the folder:
+### 1. Direct Web Preview (Recommended)
+You can test the application instantly without any server setup:
 ```bash
-pip install -r requirements.txt
+# Run a lightweight local python server in the project directory
+python -m http.server 8000
 ```
+Open your browser and navigate to **`http://localhost:8000`** to draw!
 
-### 3. Run Streamlit Server
-Start the web dashboard locally on your system:
+### 2. Python Streamlit Execution
+If you prefer running the app via the Streamlit backend wrapper:
+1. Install Streamlit dependency:
+   ```bash
+   pip install -r requirements.txt
+   ```
+2. Start the local server:
+   ```bash
+   streamlit run app.py
+   ```
+3. Open your browser to **`http://localhost:8501`**.
+
+---
+
+## 🏗️ Production Compilations
+If you modify the source files in `src/`, compile them into the production-ready root `index.html` by running:
 ```bash
-streamlit run app.py
+python build.py
 ```
-Open your browser and navigate to **`http://localhost:8501`** to draw!
 
 ---
 
 ## 📁 Repository Structure
-*   [`app.py`](file:///c:/Users/mihir/Desktop/1_Cursor_Control_With_Hand_Gesture/app.py): Streamlit Single Page Application containing custom styles, top navbars, HTML5/JS iframe canvas components, and documentation sections.
-*   [`requirements.txt`](file:///c:/Users/mihir/Desktop/1_Cursor_Control_With_Hand_Gesture/requirements.txt): List of dependencies needed for deployment.
-*   [`main.py`](file:///c:/Users/mihir/Desktop/1_Cursor_Control_With_Hand_Gesture/main.py): Local desktop cursor controller baseline (maps coordinates to physical OS cursor using PyAutoGUI).
-*   [`util.py`](file:///c:/Users/mihir/Desktop/1_Cursor_Control_With_Hand_Gesture/util.py): Math utilities supporting local coordinate filters.
+*   [`index.html`](file:///c:/Users/mihir/Desktop/1_Cursor_Control_With_Hand_Gesture/index.html): Standalone, compiled single-page production app containing inlined styles and scripts.
+*   [`app.py`](file:///c:/Users/mihir/Desktop/1_Cursor_Control_With_Hand_Gesture/app.py): Streamlit wrapper serving the compiled index.html.
+*   [`build.py`](file:///c:/Users/mihir/Desktop/1_Cursor_Control_With_Hand_Gesture/build.py): Compiler script that bundles all files in `src/` into the root index.html.
+*   [`favicon.svg`](file:///c:/Users/mihir/Desktop/1_Cursor_Control_With_Hand_Gesture/favicon.svg): SVG favicon used as the website icon.
+*   [`requirements.txt`](file:///c:/Users/mihir/Desktop/1_Cursor_Control_With_Hand_Gesture/requirements.txt): Minimal dependencies for Python environment.
+*   [`src/`](file:///c:/Users/mihir/Desktop/1_Cursor_Control_With_Hand_Gesture/src): Folder containing the raw modular HTML, CSS, and JS components.
