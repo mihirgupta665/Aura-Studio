@@ -592,8 +592,7 @@
                 isHandDetected = true;
                 trackingPausedOverlay.style.display = 'none';
                 sysPulse.classList.add('active');
-                camHudStatus.innerHTML = "ZOOM & PAN ACTIVE";
-                camHudStatus.style.color = "var(--secondary)";
+                
                 const h1 = results.multiHandLandmarks[0];
                 const h2 = results.multiHandLandmarks[1];
                 
@@ -602,32 +601,60 @@
                 drawConnectors(canvasCtx, h2, HAND_CONNECTIONS, {color: '#8b5cf6', lineWidth: 1.5});
                 drawLandmarks(canvasCtx, h2, {color: '#ec4899', lineWidth: 0.5, radius: 1.5});
                 
-                const pt1 = { x: h1[8].x, y: h1[8].y };
-                const pt2 = { x: h2[8].x, y: h2[8].y };
-                
-                const currentDist = Math.hypot(pt2.x - pt1.x, pt2.y - pt1.y);
-                const currentMid = { x: (pt1.x + pt2.x) / 2, y: (pt1.y + pt2.y) / 2 };
-                
-                if (prevTwoHandDist !== null) {
-                    const zoomFactor = currentDist / prevTwoHandDist;
-                    canvasZoom = Math.max(0.5, Math.min(3.0, canvasZoom * zoomFactor));
+                // Helper to classify if a hand is in a closed fist state
+                const isHandFist = (landmarks) => {
+                    const handScale = Math.hypot(landmarks[0].x - landmarks[9].x, landmarks[0].y - landmarks[9].y);
+                    const normDist = (a, b) => Math.hypot(landmarks[a].x - landmarks[b].x, landmarks[a].y - landmarks[b].y) / handScale;
                     
-                    const dx = (isMirrored ? -(currentMid.x - prevTwoHandMid.x) : (currentMid.x - prevTwoHandMid.x)) * paintCanvas.offsetWidth;
-                    const dy = (currentMid.y - prevTwoHandMid.y) * paintCanvas.offsetHeight;
-                    canvasPanX += dx;
-                    canvasPanY += dy;
+                    const isIndexExtended = landmarks[8].y < landmarks[6].y;
+                    const isMiddleExtended = landmarks[12].y < landmarks[10].y;
+                    const isRingExtended = landmarks[16].y < landmarks[14].y;
+                    const isPinkyExtended = landmarks[20].y < landmarks[18].y;
                     
-                    paintCanvas.style.transform = `translate(${canvasPanX}px, ${canvasPanY}px) scale(${canvasZoom})`;
-                    const pC = document.getElementById('particle-canvas');
-                    if (pC) {
-                        pC.style.transform = `translate(${canvasPanX}px, ${canvasPanY}px) scale(${canvasZoom})`;
+                    const extendedFingers = [isIndexExtended, isMiddleExtended, isRingExtended, isPinkyExtended].filter(Boolean).length;
+                    return extendedFingers === 0 && normDist(4, 5) < 0.22;
+                };
+
+                const h1Fist = isHandFist(h1);
+                const h2Fist = isHandFist(h2);
+
+                if (h1Fist && h2Fist) {
+                    camHudStatus.innerHTML = "ZOOM LOCKED (RELEASE ONE HAND TO DRAW)";
+                    camHudStatus.style.color = "var(--success)";
+                    // Freeze zoom & pan by resetting baseline tracking distance / midpoint
+                    prevTwoHandDist = null;
+                    prevTwoHandMid = null;
+                } else {
+                    camHudStatus.innerHTML = "ZOOM & PAN ACTIVE";
+                    camHudStatus.style.color = "var(--secondary)";
+                    
+                    const pt1 = { x: h1[8].x, y: h1[8].y };
+                    const pt2 = { x: h2[8].x, y: h2[8].y };
+                    
+                    const currentDist = Math.hypot(pt2.x - pt1.x, pt2.y - pt1.y);
+                    const currentMid = { x: (pt1.x + pt2.x) / 2, y: (pt1.y + pt2.y) / 2 };
+                    
+                    if (prevTwoHandDist !== null) {
+                        const zoomFactor = currentDist / prevTwoHandDist;
+                        canvasZoom = Math.max(0.5, Math.min(3.0, canvasZoom * zoomFactor));
+                        
+                        const dx = (isMirrored ? -(currentMid.x - prevTwoHandMid.x) : (currentMid.x - prevTwoHandMid.x)) * paintCanvas.offsetWidth;
+                        const dy = (currentMid.y - prevTwoHandMid.y) * paintCanvas.offsetHeight;
+                        canvasPanX += dx;
+                        canvasPanY += dy;
+                        
+                        paintCanvas.style.transform = `translate(${canvasPanX}px, ${canvasPanY}px) scale(${canvasZoom})`;
+                        const pC = document.getElementById('particle-canvas');
+                        if (pC) {
+                            pC.style.transform = `translate(${canvasPanX}px, ${canvasPanY}px) scale(${canvasZoom})`;
+                        }
+                        
+                        logSystem(`Zoom: ${canvasZoom.toFixed(2)}x | Pan: (${Math.round(canvasPanX)}, ${Math.round(canvasPanY)})`);
                     }
                     
-                    logSystem(`Zoom: ${canvasZoom.toFixed(2)}x | Pan: (${Math.round(canvasPanX)}, ${Math.round(canvasPanY)})`);
+                    prevTwoHandDist = currentDist;
+                    prevTwoHandMid = currentMid;
                 }
-                
-                prevTwoHandDist = currentDist;
-                prevTwoHandMid = currentMid;
                 
                 document.getElementById('magic-cursor-glow').style.display = 'none';
                 document.getElementById('metric-hands').innerHTML = "2";
