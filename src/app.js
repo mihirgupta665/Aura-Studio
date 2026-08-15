@@ -218,11 +218,30 @@
         });
 
 // Setup Paint Canvas size
+// Setup Paint Canvas size
         function resizePaintCanvas() {
-            const prevData = paintCtx.getImageData(0, 0, paintCanvas.width, paintCanvas.height);
-            paintCanvas.width = paintCanvas.offsetWidth;
-            paintCanvas.height = paintCanvas.offsetHeight;
-            paintCtx.putImageData(prevData, 0, 0);
+            const w = paintCanvas.offsetWidth || 800;
+            const h = paintCanvas.offsetHeight || 600;
+            
+            let prevData = null;
+            if (paintCanvas.width > 0 && paintCanvas.height > 0) {
+                try {
+                    prevData = paintCtx.getImageData(0, 0, paintCanvas.width, paintCanvas.height);
+                } catch (e) {
+                    console.warn("Could not backup canvas data:", e);
+                }
+            }
+            
+            paintCanvas.width = w;
+            paintCanvas.height = h;
+            
+            if (prevData) {
+                try {
+                    paintCtx.putImageData(prevData, 0, 0);
+                } catch (e) {
+                    console.warn("Could not restore canvas data:", e);
+                }
+            }
             paintCtx.lineCap = 'round';
             paintCtx.lineJoin = 'round';
         }
@@ -248,10 +267,16 @@
         // Undo Snapshot Stack
         let drawingHistory = [];
         function saveHistoryState() {
-            if (drawingHistory.length >= 25) {
-                drawingHistory.shift();
+            if (paintCanvas.width > 0 && paintCanvas.height > 0) {
+                if (drawingHistory.length >= 25) {
+                    drawingHistory.shift();
+                }
+                try {
+                    drawingHistory.push(paintCtx.getImageData(0, 0, paintCanvas.width, paintCanvas.height));
+                } catch (e) {
+                    console.error("Failed to save history state:", e);
+                }
             }
-            drawingHistory.push(paintCtx.getImageData(0, 0, paintCanvas.width, paintCanvas.height));
             totalStrokes++;
             document.getElementById('stat-strokes').innerHTML = totalStrokes;
         }
@@ -1089,7 +1114,7 @@
 
                 if (activeMode === 'erase') {
                     paintCtx.globalCompositeOperation = 'destination-out';
-                    paintCtx.lineWidth = brushSize * 5.0; 
+                    paintCtx.lineWidth = brushSize * 18.0; 
                     
                     paintCtx.beginPath();
                     paintCtx.moveTo(lastPaintX, lastPaintY);
@@ -1437,8 +1462,8 @@
             })
             .catch(err => {
                 console.error("Camera access error:", err);
-                cameraHud.innerHTML = "ERROR: ACCESS BLOCKED";
-                cameraHud.style.color = "var(--danger)";
+                camHudStatus.innerHTML = "ERROR: ACCESS BLOCKED";
+                camHudStatus.style.color = "var(--danger)";
                 logSystem("Camera permission blocked.");
             });
 

@@ -1,0 +1,3431 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>AURA Spatial Drawing Studio</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <style>@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        :root {
+            --bg-dark: #09090b;
+            --surface-dark: rgba(20, 20, 25, 0.45);
+            --surface-hover: rgba(35, 35, 45, 0.6);
+            --border-color: rgba(255, 255, 255, 0.06);
+            --border-glow: rgba(139, 92, 246, 0.15);
+            --primary: #8b5cf6;     /* Electric Violet */
+            --secondary: #06b6d4;   /* Soft Cyan */
+            --accent: #ec4899;      /* Magenta */
+            --success: #10b981;     /* Emerald */
+            --warning: #f59e0b;     /* Amber */
+            --danger: #ef4444;
+            --text-primary: #f4f4f5;
+            --text-secondary: #a1a1aa;
+            --text-muted: #52525b;
+            --glow-primary: rgba(139, 92, 246, 0.2);
+            --glow-secondary: rgba(6, 182, 212, 0.2);
+            --radius-lg: 16px;
+            --radius-md: 12px;
+            --radius-sm: 8px;
+            --font-outfit: 'Outfit', sans-serif;
+            --font-inter: 'Inter', sans-serif;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-dark);
+            color: var(--text-primary);
+            font-family: var(--font-inter);
+            overflow: hidden;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        /* Fixed Top Navigation Bar */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 60px;
+            background: rgba(9, 9, 11, 0.9);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border-color);
+            z-index: 99999;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 2rem;
+            box-sizing: border-box;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .navbar-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+        }
+
+        .navbar-logo {
+            font-family: var(--font-outfit);
+            font-weight: 800;
+            font-size: 1.45rem;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.04em;
+        }
+
+        .navbar-links {
+            display: flex;
+            gap: 0.8rem;
+        }
+
+        .nav-tab {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: 500;
+            font-family: var(--font-outfit);
+            cursor: pointer;
+            transition: all 0.25s ease;
+            padding: 6px 14px;
+            border-radius: var(--radius-sm);
+            border: 1px solid transparent;
+        }
+
+        .nav-tab:hover {
+            color: var(--text-primary);
+            background: rgba(255, 255, 255, 0.03);
+            border-color: rgba(255, 255, 255, 0.05);
+        }
+
+        .nav-tab.active {
+            color: var(--text-primary);
+            font-weight: 600;
+            background: rgba(139, 92, 246, 0.12);
+            border: 1px solid rgba(139, 92, 246, 0.35);
+            box-shadow: 0 0 15px rgba(139, 92, 246, 0.15);
+        }
+
+        .recruiter-btn {
+            background: linear-gradient(135deg, rgba(6, 182, 212, 0.15) 0%, rgba(139, 92, 246, 0.15) 100%);
+            border: 1px solid rgba(139, 92, 246, 0.35);
+            color: var(--text-primary);
+            font-family: var(--font-outfit);
+            font-size: 0.85rem;
+            font-weight: 600;
+            padding: 6px 14px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: all 0.25s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .recruiter-btn:hover {
+            border-color: var(--primary);
+            box-shadow: 0 0 15px rgba(139, 92, 246, 0.4);
+            transform: translateY(-1px);
+        }
+
+        /* Main Content Container */
+        #main-container {
+            margin-top: 60px;
+            padding: 20px;
+            box-sizing: border-box;
+            height: calc(100vh - 60px);
+            width: 100vw;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        /* Tab Content Panel Views */
+        .tab-content {
+            display: none;
+            width: 100%;
+            height: 100%;
+            animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .tab-content.active {
+            display: flex;
+            flex-direction: column;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* GLASS CARD STYLING */
+        .glass-card {
+            background: var(--surface-dark);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            box-sizing: border-box;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            transition: border-color 0.3s ease;
+        }
+        
+        .glass-card:hover {
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        /* ------------------ TAB 1: CANVAS STUDIO ------------------ */
+        #studio-split {
+            display: flex;
+            flex-direction: row;
+            gap: 20px;
+            flex: 1;
+            height: 520px;
+        }
+
+        #camera-wrapper {
+            flex: 1;
+            background: rgba(9, 9, 11, 0.6);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #webcam-canvas {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transform: scaleX(-1);
+        }
+
+        #input-video {
+            display: none;
+        }
+
+        #canvas-wrapper {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border-color);
+            background: radial-gradient(circle at top, #0f0e1c 0%, #050508 100%);
+        }
+
+        #paint-canvas {
+            flex: 1;
+            width: 100%;
+            height: 100%;
+            background-color: transparent;
+            cursor: none;
+            z-index: 1;
+        }
+        
+        #paint-canvas.grid {
+            background-size: 30px 30px;
+            background-image: linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                              linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+        }
+        
+        #paint-canvas.blueprint {
+            background-size: 15px 15px;
+            background-image: linear-gradient(to right, rgba(6, 182, 212, 0.04) 1px, transparent 1px),
+                              linear-gradient(to bottom, rgba(6, 182, 212, 0.04) 1px, transparent 1px);
+            background-color: #040814;
+        }
+
+        /* HUD telemetry bar at bottom of canvas */
+        .canvas-hud {
+            background: rgba(9, 9, 11, 0.9);
+            border-top: 1px solid var(--border-color);
+            padding: 8px 18px;
+            display: flex;
+            justify-content: space-between;
+            font-family: monospace;
+            font-size: 10px;
+            color: var(--secondary);
+            box-sizing: border-box;
+            z-index: 10;
+        }
+
+        /* PAINT CONTROLS TOOLBAR */
+        #toolbar-row {
+            margin-top: 15px;
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+            background: rgba(20, 20, 25, 0.4);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+        }
+
+        .toolbar-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .color-dot {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 1.5px solid transparent;
+            transition: all 0.2s ease;
+        }
+        .color-dot:hover {
+            transform: scale(1.2);
+        }
+        .color-dot.active {
+            border-color: #ffffff;
+            box-shadow: 0 0 10px rgba(255,255,255,0.6);
+        }
+
+        .tool-btn {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            color: var(--text-secondary);
+            font-family: var(--font-outfit);
+            font-size: 11px;
+            font-weight: 500;
+            padding: 6px 12px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .tool-btn:hover {
+            background: rgba(255, 255, 255, 0.08);
+            color: var(--text-primary);
+            border-color: rgba(255, 255, 255, 0.12);
+            transform: translateY(-1px);
+        }
+        .tool-btn.active {
+            background: rgba(139, 92, 246, 0.15);
+            border-color: var(--primary);
+            color: #c084fc;
+            box-shadow: 0 0 12px rgba(139, 92, 246, 0.25);
+        }
+
+        .size-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #52525b;
+            cursor: pointer;
+            border: 1.5px solid transparent;
+            transition: all 0.2s ease;
+        }
+        .size-dot.active {
+            background: var(--primary);
+            border-color: #ffffff;
+            box-shadow: 0 0 8px var(--primary);
+        }
+
+        .select-input {
+            background: rgba(9, 9, 11, 0.7);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            font-size: 11px;
+            font-family: var(--font-outfit);
+            padding: 5px 10px;
+            border-radius: var(--radius-sm);
+            outline: none;
+            cursor: pointer;
+            transition: border-color 0.2s;
+        }
+        .select-input:hover {
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+
+        /* ------------------ TAB 2: GESTURE LAB ------------------ */
+        #lab-grid {
+            display: grid;
+            grid-template-columns: 1fr 1.25fr;
+            gap: 20px;
+            flex: 1;
+        }
+
+        .gesture-card {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 18px;
+            background: rgba(255,255,255,0.02);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            margin-bottom: 10px;
+            transition: background 0.3s;
+        }
+        .gesture-card:hover {
+            background: rgba(255, 255, 255, 0.04);
+        }
+
+        .gesture-status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-family: var(--font-outfit);
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .meter-bar-bg {
+            width: 140px;
+            height: 6px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .meter-bar-fill {
+            height: 100%;
+            width: 0%;
+            background: var(--primary);
+            transition: width 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        /* ------------------ TAB 3: MAGIC CONFIG ------------------ */
+        #magic-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            flex: 1;
+        }
+
+        /* ------------------ TAB 5: ANALYTICS ------------------ */
+        #analytics-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            text-align: center;
+            padding: 20px;
+            transition: transform 0.3s ease;
+        }
+        .stat-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .stat-val {
+            font-size: 2.25rem;
+            font-weight: 800;
+            font-family: var(--font-outfit);
+            color: var(--primary);
+            margin-top: 5px;
+            text-shadow: 0 0 10px rgba(139, 92, 246, 0.2);
+        }
+
+        /* ------------------ RADIAL COMMAND MENU OVERLAYS ------------------ */
+        .radial-overlay {
+            position: absolute;
+            width: 140px;
+            height: 140px;
+            border-radius: 50%;
+            background: rgba(9, 9, 11, 0.12); /* Highly translucent background so hand remains visible */
+            backdrop-filter: blur(2px);        /* Reduced blur for high visibility of hand and landmarks */
+            -webkit-backdrop-filter: blur(2px);
+            border: 2px dashed rgba(139, 92, 246, 0.6); /* Semi-transparent dashed border */
+            z-index: 10000;
+            display: none;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 0 25px rgba(139, 92, 246, 0.3);
+            pointer-events: none;
+            transition: transform 0.1s ease;
+        }
+
+        .radial-item {
+            position: absolute;
+            font-family: var(--font-outfit);
+            font-size: 11px;
+            font-weight: 800;
+            color: #ffffff;
+            text-shadow: 0 2px 5px rgba(0, 0, 0, 0.95);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            transform: translate(-50%, -50%);
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+
+        .radial-item.active {
+            color: #22d3ee;
+            text-shadow: 0 0 12px #22d3ee, 0 2px 5px rgba(0, 0, 0, 0.95);
+            font-weight: 900;
+            transform: translate(-50%, -50%) scale(1.2);
+        }
+
+        /* SMART SHAPE ASSIST PROMPT HUD */
+        #shape-assist-hud {
+            position: absolute;
+            bottom: 60px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(9, 9, 11, 0.92);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1.5px dashed var(--secondary);
+            border-radius: var(--radius-md);
+            padding: 10px 20px;
+            display: none;
+            align-items: center;
+            gap: 15px;
+            font-size: 12px;
+            color: var(--text-primary);
+            z-index: 9999;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+        }
+
+        /* SYSTEM INDICATORS & HUD */
+        .pulse-light {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: var(--danger);
+            animation: pulse-red 1.5s infinite;
+        }
+
+        .pulse-light.active {
+            background-color: var(--success);
+            animation: pulse-green 1.5s infinite;
+        }
+
+        @keyframes pulse-red {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(239, 68, 68, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+        }
+
+        @keyframes pulse-green {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+        }
+
+        /* RECRUITER SPECS MODAL OVERLAY */
+        #recruiter-modal {
+            position: absolute;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(5, 5, 8, 0.85);
+            backdrop-filter: blur(16px);
+            z-index: 999999;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* CONFIGURATION SLIDERS styling */
+        .slider-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .range-slider {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
+            height: 4px;
+            border-radius: 99px;
+            background: rgba(255,255,255,0.08);
+            outline: none;
+            margin: 8px 0;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .range-slider:hover {
+            background: rgba(255,255,255,0.12);
+        }
+        .range-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: var(--primary);
+            border: 2px solid #ffffff;
+            box-shadow: 0 0 10px rgba(139,92,246,0.8);
+            transition: transform 0.15s ease;
+        }
+        .range-slider::-webkit-slider-thumb:hover {
+            transform: scale(1.25);
+            box-shadow: 0 0 15px var(--primary);
+        }
+
+        /* VIRTUAL CURSOR GLOW */
+        #magic-cursor-glow {
+            position: absolute;
+            width: 24px;
+            height: 24px;
+            background: radial-gradient(circle, rgba(192, 132, 252, 0.5) 0%, rgba(139, 92, 246, 0) 70%);
+            border-radius: 50%;
+            pointer-events: none;
+            transform: translate(-50%, -50%);
+            z-index: 99999;
+            display: none;
+        }
+
+        /* Interactive list columns */
+        .doc-section {
+            border-left: 3px solid var(--primary);
+            padding-left: 14px;
+            margin-bottom: 25px;
+        }
+
+        .doc-title {
+            font-family: var(--font-outfit);
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 6px;
+        }
+
+        /* FIST SCREENSHOT COUNTDOWN RING */
+        #fist-countdown {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(9, 9, 11, 0.75);
+            z-index: 9999;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        .ring-spin {
+            width: 60px;
+            height: 60px;
+            border: 4px dashed var(--accent);
+            border-radius: 50%;
+            animation: spin 1.2s linear infinite;
+        }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+
+        /* SCREENSHOT GALLERY BAR */
+        #gallery-row {
+            margin-top: 15px;
+            height: 75px;
+            background: rgba(20, 20, 25, 0.3);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 8px 15px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            overflow-x: auto;
+            box-sizing: border-box;
+        }
+        .gallery-thumbnail {
+            width: 85px;
+            height: 55px;
+            border-radius: 6px;
+            border: 1.5px solid rgba(255,255,255,0.08);
+            object-fit: cover;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            background: #000;
+        }
+        .gallery-thumbnail:hover {
+            transform: scale(1.06) translateY(-1px);
+            border-color: var(--primary);
+            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+        }
+
+        /* OVERLAY DIALOGS (Onboarding, Auto Calibration, Paused) */
+        .overlay-wrapper {
+            position: absolute;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(5, 5, 8, 0.85);
+            backdrop-filter: blur(16px);
+            z-index: 9999999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .onboarding-card {
+            width: 580px;
+            max-width: 90%;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            border-color: var(--primary);
+            box-shadow: 0 0 40px rgba(139, 92, 246, 0.35);
+        }
+        
+        .neon-text {
+            margin-top: 0;
+            font-family: var(--font-outfit);
+            background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-align: center;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+        }
+        
+        .onboarding-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin: 10px 0;
+        }
+        
+        .onboarding-item {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            padding: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 11px;
+            line-height: 1.4;
+        }
+        .onboarding-item span {
+            font-size: 20px;
+        }
+        
+        .action-btn {
+            background: var(--primary);
+            border: none;
+            color: white;
+            font-family: var(--font-outfit);
+            font-size: 13px;
+            font-weight: 700;
+            padding: 12px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+        }
+        .action-btn:hover {
+            box-shadow: 0 0 15px var(--primary);
+            transform: translateY(-1px);
+        }
+
+        #auto-cal-overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(9, 9, 11, 0.85);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        
+        .auto-cal-card {
+            background: var(--surface-dark);
+            border: 1.5px solid var(--secondary);
+            border-radius: var(--radius-md);
+            padding: 20px;
+            width: 320px;
+            box-shadow: 0 0 30px rgba(6, 182, 212, 0.3);
+            text-align: center;
+        }
+        
+        .auto-cal-card h4 {
+            margin: 0 0 10px 0;
+            font-family: var(--font-outfit);
+            color: var(--secondary);
+            font-weight: 800;
+            letter-spacing: 0.05em;
+        }
+        
+        .auto-cal-card p {
+            font-size: 11px;
+            color: var(--text-secondary);
+            margin: 0 0 15px 0;
+            line-height: 1.5;
+        }
+        
+        .auto-cal-progress-bar {
+            width: 100%;
+            height: 6px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 3px;
+            overflow: hidden;
+            margin-bottom: 15px;
+        }
+        
+        #auto-cal-progress-fill {
+            height: 100%;
+            width: 0%;
+            background: var(--secondary);
+            transition: width 0.3s ease;
+        }
+
+        #tracking-paused-overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(9, 9, 11, 0.6);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            pointer-events: none;
+        }
+        
+        .paused-card {
+            background: rgba(15, 23, 42, 0.85);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 20px 30px;
+            text-align: center;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+        }
+        .paused-card h3 {
+            margin: 0 0 8px 0;
+            font-family: var(--font-outfit);
+            color: var(--text-secondary);
+            letter-spacing: 0.05em;
+        }
+        .paused-card p {
+            margin: 0;
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        /* Collapsible Performance Hud Card styling */
+        .collapsible-hud-card {
+            margin-top: 15px;
+            border-top: 1px solid var(--border-color);
+            padding-top: 15px;
+        }
+        .hud-toggle-btn {
+            font-family: var(--font-outfit);
+            font-size: 10px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            user-select: none;
+        }
+        .hud-collapsible-content {
+            display: none;
+            margin-top: 10px;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            padding: 12px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border-color);
+        }
+        .hud-metric-box {
+            text-align: center;
+        }
+        .hud-metric-title {
+            font-size: 8px;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin-bottom: 2px;
+        }
+        .hud-metric-val {
+            font-family: monospace;
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--secondary);
+        }</style>
+
+    <!-- Load MediaPipe Libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+</head>
+<body>
+
+    <!-- Fixed Navbar -->
+    <div class="navbar">
+        <div class="navbar-brand">
+            <div class="pulse-light" id="sys-pulse"></div>
+            <div class="navbar-logo">✨ AURA STUDIO</div>
+        </div>
+        <div class="navbar-links">
+            <div class="nav-tab active" data-tab="studio">🎨 Canvas Studio</div>
+            <div class="nav-tab" data-tab="lab">🖐️ Gesture Lab</div>
+            <div class="nav-tab" data-tab="engine">✨ Magic Engine</div>
+            <div class="nav-tab" data-tab="replay">🎬 Replay</div>
+            <div class="nav-tab" data-tab="analytics">📊 Analytics</div>
+            <div class="nav-tab" data-tab="calibration">⚙️ Calibration</div>
+        </div>
+    </div>
+
+    <!-- ONBOARDING OVERLAY -->
+    <div id="onboarding-overlay" class="overlay-wrapper">
+        <div class="glass-card onboarding-card">
+            <h2 class="neon-text">✨ WELCOME TO AURA</h2>
+            <p style="text-align:center; font-size:12px; color:var(--text-secondary); margin:0;">Turn your hands into a magical creative interface. Below is your spatial control cheatsheet:</p>
+            <div class="onboarding-grid">
+                <div class="onboarding-item"><span>☝️</span><div><strong>Move:</strong> Hover index fingertip to move the magical cursor</div></div>
+                <div class="onboarding-item"><span>🤏</span><div><strong>Pinch to Draw:</strong> Pinch index & thumb to sketch strokes</div></div>
+                <div class="onboarding-item"><span>👍</span><div><strong>Confirm:</strong> Thumbs Up to confirm tool selections or CAD shapes</div></div>
+                <div class="onboarding-item"><span>👎</span><div><strong>Undo:</strong> Thumbs Down to undo last stroke/shape</div></div>
+                <div class="onboarding-item"><span>🖐️</span><div><strong>Pause:</strong> Open palm to temporarily pause drawing tracking</div></div>
+                <div class="onboarding-item"><span>✊</span><div><strong>Command Mode:</strong> Fist opens radial action selector</div></div>
+                <div class="onboarding-item"><span>✌️</span><div><strong>Tool Selector:</strong> Two fingers extended opens brush menu</div></div>
+                <div class="onboarding-item"><span>🖱️</span><div><strong>Mouse Fallback:</strong> Full interface is control-clickable too</div></div>
+            </div>
+            <button class="action-btn" id="btn-close-onboarding">Start Creating</button>
+        </div>
+    </div>
+
+    <!-- Main Content Container -->
+    <div id="main-container">
+        
+
+
+        <!-- SMART SHAPE ASSIST PROMPT HUD -->
+        <div id="shape-assist-hud">
+            <span id="shape-assist-text">Circle detected (94%)</span>
+            <button class="tool-btn active" id="btn-shape-ok" style="padding: 2px 6px;">👍 Confirm</button>
+            <button class="tool-btn" id="btn-shape-cancel" style="padding: 2px 6px; background: rgba(239,68,68,0.1); border-color: rgba(239,68,68,0.3); color: #fca5a5;">👎 Reject</button>
+        </div>
+
+        <!-- VIRTUAL CURSOR GLOW -->
+        <div id="magic-cursor-glow"></div>
+
+        <!-- FIST COUNTDOWN SCREENSHOT OVERLAY -->
+        <div id="fist-countdown">
+            <div class="ring-spin"></div>
+            <div style="font-family: 'Outfit', sans-serif; font-size: 14px; font-weight: 700; margin-top: 15px; color:#fff;" id="countdown-label">TAKING CAPTURE IN 100%</div>
+        </div>
+
+        <!-- ------------------ TAB 1: CANVAS STUDIO ------------------ -->
+        <div class="tab-content active" id="tab-content-studio">
+            <div id="studio-split">
+                <!-- Left: Video feed -->
+                <div id="camera-wrapper">
+                    <div class="hud-indicator" id="cam-hud-status">SEARCHING FOR HAND...</div>
+                    <video id="input-video" playsinline></video>
+                    <canvas id="webcam-canvas"></canvas>
+                    
+                    <!-- RADIAL COMMAND MENU (✊ Fist) -->
+                    <div class="radial-overlay" id="fist-menu-overlay">
+                        <div class="radial-item" data-cmd="undo">↩️ Undo</div>
+                        <div class="radial-item" data-cmd="brush">🖌️ Brush</div>
+                        <div class="radial-item" data-cmd="clear">🗑️ Clear</div>
+                        <div class="radial-item" data-cmd="eraser">🧽 Eraser</div>
+                    </div>
+
+                    <!-- RADIAL TOOL SELECTION MENU (✌️ Two Fingers) -->
+                    <div class="radial-overlay" id="tool-menu-overlay">
+                        <div class="radial-item" data-tool="magic">✨ Magic</div>
+                        <div class="radial-item" data-tool="shapes">🔷 Shape</div>
+                        <div class="radial-item" data-tool="eraser">🧽 Erase</div>
+                        <div class="radial-item" data-tool="pencil">✏️ Pencil</div>
+                        <div class="radial-item" data-tool="ink">🖌️ Ink</div>
+                    </div>
+                    
+                    <!-- Guided Auto-Calibration Screen -->
+                    <div id="auto-cal-overlay" style="display:none;">
+                        <div class="auto-cal-card">
+                            <h4 id="auto-cal-title">STAGE 1: OPEN PALM</h4>
+                            <p id="auto-cal-instructions">Show your open hand clearly in front of the camera.</p>
+                            <div class="auto-cal-progress-bar"><div id="auto-cal-progress-fill"></div></div>
+                            <div style="display:flex; justify-content:space-between; margin-top:10px;">
+                                <button class="tool-btn" id="btn-skip-cal" style="font-size:9px;">Cancel</button>
+                                <span id="auto-cal-status" style="font-size:9px; color:var(--secondary); font-family:monospace;">Waiting...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Right: Paint canvas -->
+                <div id="canvas-wrapper">
+                    <canvas id="paint-canvas"></canvas>
+                    
+                    <!-- Tracking Paused Screen -->
+                    <div id="tracking-paused-overlay" style="display:none;">
+                        <div class="paused-card">
+                            <h3>🖐️ TRACKING PAUSED</h3>
+                            <p>Show normal hand posture or pinch to resume sketchpad.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="canvas-hud">
+                        <div style="display:flex; gap:15px;">
+                            <span id="hud-coordinates">Cursor: (0, 0)</span>
+                            <span id="hud-fps">FPS: 60</span>
+                            <span id="hud-particles-count" style="margin-left:10px;">Particles: 0</span>
+                        </div>
+                        <span id="hud-log">System initialized. Ready to draw.</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Collapsible Developer Performance Panel -->
+            <div class="collapsible-hud-card">
+                <div class="hud-toggle-btn" id="btn-toggle-hud">
+                    <span>▶</span> <strong>DEVELOPER PERFORMANCE HUD</strong>
+                </div>
+                <div class="hud-collapsible-content" id="hud-perf-content">
+                    <div class="hud-metric-box">
+                        <div class="hud-metric-title">FPS</div>
+                        <div class="hud-metric-val" id="metric-fps">60</div>
+                    </div>
+                    <div class="hud-metric-box">
+                        <div class="hud-metric-title">Tracking Confidence</div>
+                        <div class="hud-metric-val" id="metric-track">98%</div>
+                    </div>
+                    <div class="hud-metric-box">
+                        <div class="hud-metric-title">Detection Confidence</div>
+                        <div class="hud-metric-val" id="metric-detect">99%</div>
+                    </div>
+                    <div class="hud-metric-box">
+                        <div class="hud-metric-title">Render Latency</div>
+                        <div class="hud-metric-val" id="metric-latency">14ms</div>
+                    </div>
+                    <div class="hud-metric-box">
+                        <div class="hud-metric-title">Hands Tracked</div>
+                        <div class="hud-metric-val" id="metric-hands">1</div>
+                    </div>
+                    <div class="hud-metric-box">
+                        <div class="hud-metric-title">Active Landmarks</div>
+                        <div class="hud-metric-val">21</div>
+                    </div>
+                    <div class="hud-metric-box">
+                        <div class="hud-metric-title">Active Particles</div>
+                        <div class="hud-metric-val" id="metric-particles">0 / 300</div>
+                    </div>
+                    <div class="hud-metric-box">
+                        <div class="hud-metric-title">Render Frame Time</div>
+                        <div class="hud-metric-val" id="metric-frame-time">4ms</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Toolbar controls row -->
+            <div id="toolbar-row">
+                <div class="toolbar-group">
+                    <div class="color-dot active" style="background:#8b5cf6;" data-color="#8b5cf6"></div>
+                    <div class="color-dot" style="background:#06b6d4;" data-color="#06b6d4"></div>
+                    <div class="color-dot" style="background:#ec4899;" data-color="#ec4899"></div>
+                    <div class="color-dot" style="background:#10b981;" data-color="#10b981"></div>
+                    <div class="color-dot" style="background:#f59e0b;" data-color="#f59e0b"></div>
+                    <div class="color-dot" style="background:#ffffff;" data-color="#ffffff"></div>
+                    
+                    <div class="color-picker-wrapper">
+                        <input type="color" id="custom-color" value="#8b5cf6" style="border:none; background:transparent; width:18px; height:18px; cursor:pointer; padding:0;">
+                    </div>
+                </div>
+
+                <div class="toolbar-group">
+                    <button class="tool-btn active" id="btn-mode-draw">✏️ Draw</button>
+                    <button class="tool-btn" id="btn-mode-erase">🧽 Erase</button>
+                    
+                    <span style="font-size:10px; color:var(--text-muted); margin-left:5px;">Size:</span>
+                    <div class="size-dot active" data-size="3"></div>
+                    <div class="size-dot" data-size="8" style="transform:scale(1.2);"></div>
+                    <div class="size-dot" data-size="16" style="transform:scale(1.4);"></div>
+                    <div class="size-dot" data-size="28" style="transform:scale(1.6);"></div>
+                </div>
+
+                <div class="toolbar-group">
+                    <select id="sel-brush" class="select-input">
+                        <option value="pencil">✏️ Pencil</option>
+                        <option value="ink">🖌️ Ink</option>
+                        <option value="neon">⚡ Neon</option>
+                        <option value="magic">✨ Celestial</option>
+                        <option value="plasma">🧬 Plasma</option>
+                        <option value="ember">🔥 Ember</option>
+                        <option value="frost">❄️ Frost</option>
+                        <option value="sakura">🌸 Sakura</option>
+                        <option value="quantum">🧬 Quantum</option>
+                    </select>
+
+                    <select id="sel-bg-style" class="select-input">
+                        <option value="solid">🌌 Plain Dark</option>
+                        <option value="grid">🌐 Tech Grid</option>
+                        <option value="blueprint">📐 Blueprint Grid</option>
+                    </select>
+
+                    <button class="tool-btn active" id="btn-mirror" title="Toggle horizontal mirror layout">🔁 Mirror</button>
+                </div>
+
+                <div class="toolbar-group" style="margin-left: auto;">
+                    <button class="tool-btn" id="btn-undo-action">↩️ Undo</button>
+                    <button class="tool-btn" id="btn-clear-canvas" style="background:rgba(239,68,68,0.12); border-color:rgba(239,68,68,0.2); color:#fca5a5;">🗑️ Clear</button>
+                    <button class="tool-btn" id="btn-save-canvas" style="background:rgba(16,185,129,0.12); border-color:rgba(16,185,129,0.2); color:#a7f3d0;">💾 Save</button>
+                </div>
+            </div>
+
+            <!-- Gallery screenshots row -->
+            <div id="gallery-row">
+                <div class="gallery-title" style="font-family:'Outfit', sans-serif; font-size:10px; font-weight:700; color:var(--text-muted); text-transform:uppercase; writing-mode:vertical-lr; transform:rotate(180deg); padding-right:5px;">Gallery</div>
+                <div style="display:flex; gap:10px; flex:1;" id="gallery-list">
+                    <span id="no-captures" style="font-size:10px; color:var(--text-muted); align-self:center;">No snapshots yet. Hold closed fist (✊) for 1.5s to snap canvas screenshot.</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- ------------------ TAB 2: GESTURE LAB ------------------ -->
+        <div class="tab-content" id="tab-content-lab">
+            <div id="lab-grid">
+                <div class="glass-card" style="display:flex; flex-direction:column; gap:15px;">
+                    <h3 style="margin-top:0; font-family:'Outfit',sans-serif; color:var(--primary);">🖐️ Gestural Classifications</h3>
+                    <p style="font-size:12px; color:var(--text-secondary); margin:0 0 10px 0;">This panel displays classification telemetry and stability queues inside JavaScript's recognizer loop.</p>
+                    
+                    <div class="gesture-card">
+                        <div class="gesture-status-indicator">🤏 Pinch-to-Sketch</div>
+                        <div class="meter-bar-bg"><div class="meter-bar-fill" id="meter-pinch"></div></div>
+                    </div>
+                    <div class="gesture-card">
+                        <div class="gesture-status-indicator">👍 Thumbs Up (Confirm)</div>
+                        <div class="meter-bar-bg"><div class="meter-bar-fill" id="meter-thumbs-up"></div></div>
+                    </div>
+                    <div class="gesture-card">
+                        <div class="gesture-status-indicator">👎 Thumbs Down (Undo)</div>
+                        <div class="meter-bar-bg"><div class="meter-bar-fill" id="meter-thumbs-down"></div></div>
+                    </div>
+                    <div class="gesture-card">
+                        <div class="gesture-status-indicator">🖐️ Open Palm (Pause)</div>
+                        <div class="meter-bar-bg"><div class="meter-bar-fill" id="meter-palm"></div></div>
+                    </div>
+                    <div class="gesture-card">
+                        <div class="gesture-status-indicator">✊ Closed Fist (Command)</div>
+                        <div class="meter-bar-bg"><div class="meter-bar-fill" id="meter-fist"></div></div>
+                    </div>
+                    <div class="gesture-card">
+                        <div class="gesture-status-indicator">✌️ Two-Finger (Tools)</div>
+                        <div class="meter-bar-bg"><div class="meter-bar-fill" id="meter-two-fingers"></div></div>
+                    </div>
+                </div>
+
+                <div class="glass-card" style="display:flex; flex-direction:column; gap:10px;">
+                    <h3 style="margin-top:0; font-family:'Outfit',sans-serif; color:var(--secondary);">🔍 Recognition State Telemetry</h3>
+                    <div style="font-family:monospace; font-size:11px; background:rgba(0,0,0,0.3); border-radius:6px; padding:15px; flex:1; overflow-y:auto; line-height:1.6;" id="gesture-logs">
+                        [SYSTEM] Logger active. Waiting for hand data...
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ------------------ TAB 3: MAGIC ENGINE ------------------ -->
+        <div class="tab-content" id="tab-content-engine">
+            <div id="magic-grid">
+                <div class="glass-card" style="display:flex; flex-direction:column; gap:15px;">
+                    <h3 style="margin-top:0; font-family:'Outfit',sans-serif; color:var(--accent);">💫 Particle Engine Configurator</h3>
+                    <p style="font-size:12px; color:var(--text-secondary); margin:0 0 10px 0;">Configure parameters of client-side canvas rendering loops dynamically.</p>
+                    
+                    <div class="slider-wrapper">
+                        <div class="slider-label-row"><span>Max Particles Budget</span><span id="val-max-particles" class="val">300</span></div>
+                        <input type="range" id="cfg-max-particles" class="range-slider" min="50" max="600" step="25" value="300">
+                    </div>
+
+                    <div class="slider-wrapper">
+                        <div class="slider-label-row"><span>Velocity Coefficient</span><span id="val-particle-speed" class="val">1.20</span></div>
+                        <input type="range" id="cfg-particle-speed" class="range-slider" min="0.2" max="3.0" step="0.1" value="1.2">
+                    </div>
+
+                    <div class="slider-wrapper">
+                        <div class="slider-label-row"><span>Particle Lifetimes (ms)</span><span id="val-particle-life" class="val">1200</span></div>
+                        <input type="range" id="cfg-particle-life" class="range-slider" min="300" max="3000" step="100" value="1200">
+                    </div>
+
+                    <div class="slider-wrapper">
+                        <div class="slider-label-row"><span>Trail Length Coefficient</span><span id="val-trail-length" class="val">1.50</span></div>
+                        <input type="range" id="cfg-trail-length" class="range-slider" min="0.5" max="4.0" step="0.1" value="1.5">
+                    </div>
+                    
+                    <div style="margin-top:10px;">
+                        <span style="font-size:10px; color:var(--text-muted); display:block; margin-bottom:5px;">Select Visual Particle Theme:</span>
+                        <select id="cfg-particle-theme" class="select-input" style="width:100%; font-size:12px; padding:6px 12px;">
+                            <option value="celestial">🌌 Celestial (Stars & Violet Glow)</option>
+                            <option value="plasma">🧬 Plasma (Cyan Electric Sparks)</option>
+                            <option value="ember">🔥 Ember (Glowing Rising Sparks)</option>
+                            <option value="frost">❄️ Frost (Soft Ice Crystals)</option>
+                            <option value="sakura">🌸 Sakura (Soft Pink Petals)</option>
+                            <option value="quantum">🧬 Quantum (Emerald Jitter Sparks)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="glass-card" style="display:flex; flex-direction:column; position:relative;">
+                    <h3 style="margin-top:0; font-family:'Outfit',sans-serif; color:var(--text-primary);">🎨 Particle Sandbox Preview</h3>
+                    <div style="flex:1; width:100%; background:#020617; border-radius:8px; border:1px dashed var(--border-color); overflow:hidden; position:relative;" id="sandbox-wrapper">
+                        <canvas id="sandbox-canvas" style="width:100%; height:100%;"></canvas>
+                        <div style="position:absolute; bottom:10px; left:10px; font-size:9px; color:var(--text-muted); font-family:monospace;">Hover mouse inside sandbox to generate particles</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ------------------ TAB 4: REPLAY ------------------ -->
+        <div class="tab-content" id="tab-content-replay">
+            <div class="glass-card" style="flex:1; display:flex; flex-direction:column; gap:15px;">
+                <h3 style="margin-top:0; font-family:'Outfit',sans-serif; color:var(--primary);">🎬 Procedural Artwork Redraw Player</h3>
+                <p style="font-size:12px; color:var(--text-secondary); margin:0;">Replay your committed stroke sequences. Particles are generated dynamically matching the timestamps recorded.</p>
+                
+                <div style="display:flex; gap:10px; align-items:center;">
+                    <button class="tool-btn active" id="btn-replay-play">▶️ Start Replay</button>
+                    <button class="tool-btn" id="btn-replay-pause">⏸️ Pause</button>
+                    <button class="tool-btn" id="btn-replay-reset" style="background:rgba(255,255,255,0.02); border-color:var(--border-color);">🔄 Reset Player</button>
+                    <span id="replay-hud-status" style="font-family:monospace; font-size:11px; color:var(--secondary); margin-left:10px;">Player idle. Recorded Strokes: 0</span>
+                </div>
+
+                <div style="flex:1; width:100%; background:#020617; border-radius:8px; border:1px solid var(--border-color); position:relative; overflow:hidden;" id="replay-canvas-wrapper">
+                    <canvas id="replay-canvas" style="width:100%; height:100%; background:transparent;"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- ------------------ TAB 5: ANALYTICS ------------------ -->
+        <div class="tab-content" id="tab-content-analytics">
+            <div id="analytics-grid">
+                <div class="glass-card stat-card">
+                    <div style="font-size:11px; text-transform:uppercase; color:var(--text-muted); font-family:'Outfit';">Elapsed Active Time</div>
+                    <div class="stat-val" id="stat-time">00:00</div>
+                </div>
+                <div class="glass-card stat-card">
+                    <div style="font-size:11px; text-transform:uppercase; color:var(--text-muted); font-family:'Outfit';">Committed Strokes</div>
+                    <div class="stat-val" id="stat-strokes">0</div>
+                </div>
+                <div class="glass-card stat-card">
+                    <div style="font-size:11px; text-transform:uppercase; color:var(--text-muted); font-family:'Outfit';">Classified Gestures</div>
+                    <div class="stat-val" id="stat-gestures">0</div>
+                </div>
+                <div class="glass-card stat-card">
+                    <div style="font-size:11px; text-transform:uppercase; color:var(--text-muted); font-family:'Outfit';">Cursor Pixels Traveled</div>
+                    <div class="stat-val" id="stat-pixels">0 px</div>
+                </div>
+            </div>
+            
+            <div class="glass-card" style="flex:1; display:flex; flex-direction:column; gap:10px;">
+                <h3 style="margin-top:0; font-family:'Outfit',sans-serif; color:var(--secondary);">📊 Smart Session Performance</h3>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px; flex:1;">
+                    <div style="background:rgba(0,0,0,0.15); border-radius:8px; border:1px solid var(--border-color); padding:15px; display:flex; flex-direction:column; justify-content:center; gap:12px;">
+                        <div style="font-size:11px; color:var(--text-secondary); display:flex; justify-content:space-between;"><span>Average Pipeline FPS</span><span style="font-family:monospace; color:var(--success); font-weight:700;">60.0 FPS</span></div>
+                        <div class="meter-bar-bg" style="width:100%; height:8px;"><div class="meter-bar-fill" style="width:100%; background:var(--success);"></div></div>
+
+                        <div style="font-size:11px; color:var(--text-secondary); display:flex; justify-content:space-between;"><span>Hand Landmark Tracking Accuracy</span><span style="font-family:monospace; color:var(--secondary); font-weight:700;">99.2%</span></div>
+                        <div class="meter-bar-bg" style="width:100%; height:8px;"><div class="meter-bar-fill" style="width:99%; background:var(--secondary);"></div></div>
+
+                        <div style="font-size:11px; color:var(--text-secondary); display:flex; justify-content:space-between;"><span>WASM Render Latency</span><span style="font-family:monospace; color:#a78bfa; font-weight:700;">14.5 ms</span></div>
+                        <div class="meter-bar-bg" style="width:100%; height:8px;"><div class="meter-bar-fill" style="width:15%; background:#a78bfa;"></div></div>
+                    </div>
+                    
+                    <div style="background:rgba(0,0,0,0.15); border-radius:8px; border:1px solid var(--border-color); padding:15px; display:flex; flex-direction:column; justify-content:center; gap:8px; font-family:monospace; font-size:11px; color:var(--text-secondary); line-height:1.6;">
+                        <span style="color:var(--primary); font-weight:700; font-family:'Outfit';">SESSION DIAGNOSTIC ANALYTICS</span>
+                        <span>[INFO] WebAssembly models successfully loaded.</span>
+                        <span>[INFO] Object pool rendering active.</span>
+                        <span>[INFO] Temporary particle buffers cleared: 0 leaks.</span>
+                        <span>[INFO] Drawing coordinates bounds normalized successfully.</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ------------------ TAB 6: CALIBRATION ------------------ -->
+        <div class="tab-content" id="tab-content-calibration">
+            <div style="display:grid; grid-template-columns:1.5fr 1fr; gap:20px; flex:1;">
+                <div class="glass-card" style="display:flex; flex-direction:column; gap:15px;">
+                    <h3 style="margin-top:0; font-family:'Outfit',sans-serif; color:var(--primary); display:flex; justify-content:space-between; align-items:center;">
+                        <span>⚙️ Calibration Dashboard</span>
+                        <button class="tool-btn active" id="btn-toggle-auto-cal" style="font-size:11px; padding:4px 10px;">🌟 Guided Auto-Calibration</button>
+                    </h3>
+                    <p style="font-size:12px; color:var(--text-secondary); margin:0 0 10px 0;">Manually adjust boundary scales, click sensitivities, and smoothing multipliers inside WASM loops.</p>
+                    
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px;">
+                        <div class="slider-wrapper">
+                            <div class="slider-label-row"><span>Min Detection Confidence</span><span id="lbl-cfg-detect" class="val">0.70</span></div>
+                            <input type="range" id="cfg-detect" class="range-slider" min="0.4" max="0.95" step="0.05" value="0.70">
+                        </div>
+                        <div class="slider-wrapper">
+                            <div class="slider-label-row"><span>Min Tracking Confidence</span><span id="lbl-cfg-track" class="val">0.70</span></div>
+                            <input type="range" id="cfg-track" class="range-slider" min="0.4" max="0.95" step="0.05" value="0.70">
+                        </div>
+                        <div class="slider-wrapper">
+                            <div class="slider-label-row"><span>Brush EMA Smoothing</span><span id="lbl-cfg-smoothing" class="val">0.25</span></div>
+                            <input type="range" id="cfg-smoothing" class="range-slider" min="0.05" max="0.8" step="0.05" value="0.25">
+                        </div>
+                        <div class="slider-wrapper">
+                            <div class="slider-label-row"><span>Pinch Click Distance Threshold</span><span id="lbl-cfg-pinch" class="val">0.18</span></div>
+                            <input type="range" id="cfg-pinch" class="range-slider" min="0.05" max="0.30" step="0.01" value="0.18">
+                        </div>
+                        <div class="slider-wrapper">
+                            <div class="slider-label-row"><span>Top Bounding Margin</span><span id="lbl-cfg-top" class="val">0.15</span></div>
+                            <input type="range" id="cfg-top" class="range-slider" min="0.0" max="0.4" step="0.05" value="0.15">
+                        </div>
+                        <div class="slider-wrapper">
+                            <div class="slider-label-row"><span>Bottom Bounding Margin</span><span id="lbl-cfg-bottom" class="val">0.75</span></div>
+                            <input type="range" id="cfg-bottom" class="range-slider" min="0.6" max="1.0" step="0.05" value="0.75">
+                        </div>
+                        <div class="slider-wrapper">
+                            <div class="slider-label-row"><span>Left Bounding Margin</span><span id="lbl-cfg-left" class="val">0.15</span></div>
+                            <input type="range" id="cfg-left" class="range-slider" min="0.0" max="0.4" step="0.05" value="0.15">
+                        </div>
+                        <div class="slider-wrapper">
+                            <div class="slider-label-row"><span>Right Bounding Margin</span><span id="lbl-cfg-right" class="val">0.85</span></div>
+                            <input type="range" id="cfg-right" class="range-slider" min="0.6" max="1.0" step="0.05" value="0.85">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass-card" style="display:flex; flex-direction:column; gap:10px;">
+                    <h3 style="margin-top:0; font-family:'Outfit',sans-serif; color:var(--secondary);">📐 Tracking Region Active Area</h3>
+                    <div style="flex:1; display:flex; align-items:center; justify-content:center; background:#020617; border-radius:8px; border:1px solid var(--border-color); padding:10px; box-sizing:border-box; height:200px;">
+                        <svg id="active-box-svg-preview" style="width:100%; height:100%;">
+                            <rect x="0" y="0" width="100%" height="100%" fill="none" />
+                            <rect id="svg-active-box" x="20" y="20" width="160" height="120" fill="rgba(6,182,212,0.12)" stroke="var(--secondary)" stroke-width="2" stroke-dasharray="6,4" />
+                            <text x="50%" y="53%" fill="var(--secondary)" font-family="Outfit" font-size="10" font-weight="600" text-anchor="middle">ACTIVE COORDINATES BOUNDS</text>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // ------------------ SOUND SYNTHESIZER ------------------
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playBeep(freq, duration, type="sine") {
+            try {
+                const osc = audioCtx.createOscillator();
+                const gainNode = audioCtx.createGain();
+                osc.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+                osc.type = type;
+                osc.frequency.value = freq;
+                gainNode.gain.setValueAtTime(0.05, audioCtx.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + duration);
+                osc.start();
+                osc.stop(audioCtx.currentTime + duration);
+            } catch(e) {}
+        }
+
+        function playCameraSound() {
+            try {
+                const bufferSize = audioCtx.sampleRate * 0.15;
+                const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+                const data = buffer.getChannelData(0);
+                for (let i = 0; i < bufferSize; i++) {
+                    data[i] = Math.random() * 2 - 1;
+                }
+                const noise = audioCtx.createBufferSource();
+                noise.buffer = buffer;
+                const filter = audioCtx.createBiquadFilter();
+                filter.type = 'bandpass';
+                filter.frequency.value = 1000;
+                const gain = audioCtx.createGain();
+                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.15);
+                noise.connect(filter);
+                filter.connect(gain);
+                gain.connect(audioCtx.destination);
+                noise.start();
+            } catch(e) {}
+        }
+        
+        // ------------------ JS PARTICLE ENGINE ------------------
+        let particles = [];
+        const cfgMaxParticles = document.getElementById('cfg-max-particles');
+        const cfgParticleSpeed = document.getElementById('cfg-particle-speed');
+        const cfgParticleLife = document.getElementById('cfg-particle-life');
+        const cfgTrailLength = document.getElementById('cfg-trail-length');
+        const cfgParticleTheme = document.getElementById('cfg-particle-theme');
+
+        class Particle {
+            constructor() {
+                this.x = 0;
+                this.y = 0;
+                this.vx = 0;
+                this.vy = 0;
+                this.maxLife = 0;
+                this.life = 0;
+                this.size = 0;
+                this.alpha = 0;
+                this.theme = 'celestial';
+                this.active = false;
+            }
+
+            reset(x, y, theme) {
+                this.x = x;
+                this.y = y;
+                const speedCoeff = parseFloat(cfgParticleSpeed.value);
+                const angle = Math.random() * Math.PI * 2;
+                const speed = Math.random() * 2 * speedCoeff;
+                
+                if (theme === 'sakura') {
+                    this.vy = (Math.random() * 0.8 + 0.3) * speedCoeff;
+                    this.vx = (Math.random() * 0.6 - 0.3) * speedCoeff;
+                } else if (theme === 'ember') {
+                    this.vy = -(Math.random() * 1.5 + 0.5) * speedCoeff;
+                    this.vx = Math.cos(angle) * speed;
+                } else if (theme === 'quantum') {
+                    this.vx = (Math.random() * 0.4 - 0.2) * speedCoeff;
+                    this.vy = (Math.random() * 0.4 - 0.2) * speedCoeff;
+                } else {
+                    this.vx = Math.cos(angle) * speed;
+                    this.vy = Math.sin(angle) * speed;
+                }
+
+                this.maxLife = parseInt(cfgParticleLife.value);
+                this.life = this.maxLife;
+                this.size = Math.random() * 3 + 1;
+                this.alpha = 1;
+                this.theme = theme;
+                this.active = true;
+            }
+
+            update(dt) {
+                if (!this.active) return;
+                this.x += this.vx;
+                this.y += this.vy;
+                
+                if (this.theme === 'sakura') {
+                    this.x += Math.sin(this.life / 150) * 0.5;
+                } else if (this.theme === 'quantum') {
+                    this.x += (Math.random() * 0.4 - 0.2);
+                    this.y += (Math.random() * 0.4 - 0.2);
+                }
+                
+                this.life -= dt;
+                this.alpha = Math.max(0, this.life / this.maxLife);
+                if (this.life <= 0) {
+                    this.active = false;
+                }
+            }
+
+            draw(ctx) {
+                if (!this.active) return;
+                ctx.save();
+                ctx.globalAlpha = this.alpha;
+                
+                if (this.theme === 'celestial') {
+                    ctx.fillStyle = '#a78bfa';
+                    ctx.shadowBlur = 8;
+                    ctx.shadowColor = '#8b5cf6';
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                    ctx.fill();
+                } else if (this.theme === 'plasma') {
+                    ctx.fillStyle = '#22d3ee';
+                    ctx.shadowBlur = 10;
+                    ctx.shadowColor = '#06b6d4';
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.size * 1.2, 0, Math.PI * 2);
+                    ctx.fill();
+                } else if (this.theme === 'ember') {
+                    ctx.fillStyle = '#f59e0b';
+                    ctx.shadowBlur = 6;
+                    ctx.shadowColor = '#f59e0b';
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                    ctx.fill();
+                } else if (this.theme === 'frost') {
+                    ctx.fillStyle = '#e2e8f0';
+                    ctx.shadowBlur = 4;
+                    ctx.shadowColor = '#3b82f6';
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.size * 0.8, 0, Math.PI * 2);
+                    ctx.fill();
+                } else if (this.theme === 'sakura') {
+                    ctx.fillStyle = '#fbcfe8';
+                    ctx.shadowBlur = 6;
+                    ctx.shadowColor = '#ec4899';
+                    ctx.beginPath();
+                    ctx.ellipse(this.x, this.y, this.size * 1.2, this.size * 0.7, Math.PI / 4, 0, Math.PI * 2);
+                    ctx.fill();
+                } else if (this.theme === 'quantum') {
+                    ctx.fillStyle = '#34d399';
+                    ctx.shadowBlur = 5;
+                    ctx.shadowColor = '#10b981';
+                    ctx.fillRect(this.x - this.size, this.y - this.size, this.size * 1.5, this.size * 1.5);
+                }
+                ctx.restore();
+            }
+        }
+
+        // Initialize pre-allocated Particle Pool
+        const MAX_PARTICLES_BUDGET = 800;
+        for (let i = 0; i < MAX_PARTICLES_BUDGET; i++) {
+            particles.push(new Particle());
+        }
+
+        function createParticlesBurst(x, y, count=10) {
+            const theme = cfgParticleTheme.value;
+            const maxBudget = Math.min(MAX_PARTICLES_BUDGET, parseInt(cfgMaxParticles.value));
+            
+            let spawned = 0;
+            // 1. Try to find inactive particles to activate
+            for (let i = 0; i < particles.length; i++) {
+                if (!particles[i].active && i < maxBudget) {
+                    particles[i].reset(x, y, theme);
+                    spawned++;
+                    if (spawned >= count) return;
+                }
+            }
+            // 2. If the active subset of the pool is completely full, we recycle active particles
+            for (let i = 0; i < particles.length; i++) {
+                if (particles[i].active && spawned < count && i < maxBudget) {
+                    particles[i].reset(x, y, theme);
+                    spawned++;
+                }
+            }
+        }
+        
+        // Guided Auto-Calibration Step Engine
+        function runAutoCalibrationStep(results) {
+            if (!results.multiHandLandmarks || results.multiHandLandmarks.length === 0) {
+                autoCalStatus.innerHTML = "No hand detected. Show hand to webcam.";
+                autoCalStatus.style.color = "var(--danger)";
+                autoCalProgressFill.style.width = '0%';
+                return;
+            }
+            
+            autoCalStatus.style.color = "var(--secondary)";
+            const landmarks = results.multiHandLandmarks[0];
+            const handScale = Math.hypot(landmarks[0].x - landmarks[9].x, landmarks[0].y - landmarks[9].y);
+            const indexTip = landmarks[8];
+            const thumbTip = landmarks[4];
+            const dist4_8 = Math.hypot(thumbTip.x - indexTip.x, thumbTip.y - indexTip.y);
+
+            const isIndexExtended = landmarks[8].y < landmarks[6].y;
+            const isMiddleExtended = landmarks[12].y < landmarks[10].y;
+            const isRingExtended = landmarks[16].y < landmarks[14].y;
+            const isPinkyExtended = landmarks[20].y < landmarks[18].y;
+            const extendedCount = [isIndexExtended, isMiddleExtended, isRingExtended, isPinkyExtended].filter(Boolean).length;
+
+            calFrames++;
+            const pct = Math.min(100, Math.floor((calFrames / 30) * 100));
+
+            if (calStage === 1) {
+                autoCalTitle.innerHTML = 'STAGE 1: OPEN PALM';
+                autoCalInstructions.innerHTML = 'Hold your open hand clearly in front of the camera.';
+                autoCalProgressFill.style.width = `${pct}%`;
+                
+                if (extendedCount >= 3) {
+                    calData.openDists.push(handScale);
+                    autoCalStatus.innerHTML = `Calibrating hand scale... (${pct}%)`;
+                    if (calFrames >= 30) {
+                        playBeep(600, 0.05);
+                        calStage = 2;
+                        calFrames = 0;
+                    }
+                } else {
+                    calFrames = Math.max(0, calFrames - 2);
+                    autoCalStatus.innerHTML = "Open palm not fully extended.";
+                }
+            } else if (calStage === 2) {
+                autoCalTitle.innerHTML = 'STAGE 2: HOVER POINTER';
+                autoCalInstructions.innerHTML = 'Extend only your index finger. Keep other fingers closed.';
+                autoCalProgressFill.style.width = `${pct}%`;
+                
+                if (isIndexExtended && extendedCount === 1) {
+                    autoCalStatus.innerHTML = `Stabilizing index pointer... (${pct}%)`;
+                    if (calFrames >= 30) {
+                        playBeep(700, 0.05);
+                        calStage = 3;
+                        calFrames = 0;
+                    }
+                } else {
+                    calFrames = Math.max(0, calFrames - 2);
+                    autoCalStatus.innerHTML = "Extend only your index finger.";
+                }
+            } else if (calStage === 3) {
+                autoCalTitle.innerHTML = 'STAGE 3: PINCH TO DRAW';
+                autoCalInstructions.innerHTML = 'Pinch index finger and thumb together firmly.';
+                autoCalProgressFill.style.width = `${pct}%`;
+                
+                if (dist4_8 / handScale < 0.28) {
+                    calData.pinchDists.push(dist4_8);
+                    autoCalStatus.innerHTML = `Measuring pinch threshold... (${pct}%)`;
+                    if (calFrames >= 30) {
+                        playBeep(800, 0.05);
+                        calStage = 4;
+                        calFrames = 0;
+                    }
+                } else {
+                    calFrames = Math.max(0, calFrames - 2);
+                    autoCalStatus.innerHTML = "Pinch thumb and index fingertip together.";
+                }
+            } else if (calStage === 4) {
+                autoCalTitle.innerHTML = 'STAGE 4: CLOSED FIST';
+                autoCalInstructions.innerHTML = 'Close your hand into a tight fist.';
+                autoCalProgressFill.style.width = `${pct}%`;
+                
+                if (extendedCount === 0) {
+                    autoCalStatus.innerHTML = `Calibrating fist size... (${pct}%)`;
+                    if (calFrames >= 30) {
+                        playBeep(900, 0.05);
+                        calStage = 5;
+                        calFrames = 0;
+                    }
+                } else {
+                    calFrames = Math.max(0, calFrames - 2);
+                    autoCalStatus.innerHTML = "Close all fingers to form a fist.";
+                }
+            } else if (calStage === 5) {
+                autoCalTitle.innerHTML = 'STAGE 5: SCAN RANGE';
+                autoCalInstructions.innerHTML = 'Move index finger comfort boundaries (corners of camera frame).';
+                
+                const totalScanFrames = 120;
+                const scanPct = Math.min(100, Math.floor((calFrames / totalScanFrames) * 100));
+                autoCalProgressFill.style.width = `${scanPct}%`;
+                autoCalStatus.innerHTML = `Scanning boundaries... (${scanPct}%)`;
+
+                calData.minX = Math.min(calData.minX, indexTip.x);
+                calData.maxX = Math.max(calData.maxX, indexTip.x);
+                calData.minY = Math.min(calData.minY, indexTip.y);
+                calData.maxY = Math.max(calData.maxY, indexTip.y);
+
+                if (calFrames >= totalScanFrames) {
+                    const widthMargin = (calData.maxX - calData.minX) * 0.03;
+                    const heightMargin = (calData.maxY - calData.minY) * 0.03;
+                    
+                    const finalLeft = Math.max(0.0, calData.minX + widthMargin);
+                    const finalRight = Math.min(1.0, calData.maxX - widthMargin);
+                    const finalTop = Math.max(0.0, calData.minY + heightMargin);
+                    const finalBottom = Math.min(1.0, calData.maxY - heightMargin);
+
+                    const avgPinchDist = calData.pinchDists.reduce((a,b)=>a+b, 0) / calData.pinchDists.length;
+                    const finalPinch = Math.max(0.08, Math.min(0.28, (avgPinchDist / handScale) * 1.35));
+
+                    // Apply to sliders
+                    cfgBoxLeft.value = finalLeft.toFixed(2);
+                    cfgBoxRight.value = finalRight.toFixed(2);
+                    cfgBoxTop.value = finalTop.toFixed(2);
+                    cfgBoxBottom.value = finalBottom.toFixed(2);
+                    cfgPinch.value = finalPinch.toFixed(2);
+                    cfgSmoothing.value = "0.20"; 
+
+                    updateCalibrationSettings();
+                    playBeep(950, 0.15, 'sine');
+                    logSystem("Guided Auto-Calibration complete!");
+                    
+                    autoCalTitle.innerHTML = 'CALIBRATION COMPLETE';
+                    autoCalInstructions.innerHTML = 'Recommended drawing settings have been applied successfully.';
+                    autoCalStatus.innerHTML = 'Wizard complete!';
+                    autoCalStatus.style.color = "var(--success)";
+                    autoCalProgressFill.style.width = '100%';
+
+                    setTimeout(() => {
+                        autoCalOverlay.style.display = 'none';
+                        isCalibrating = false;
+                    }, 2000);
+                }
+            }
+        }
+        
+        function recognizeShapeHeuristics(points) {
+            if (points.length < 12) return null;
+            
+            // Bounds
+            let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+            points.forEach(p => {
+                if (p.x < minX) minX = p.x;
+                if (p.x > maxX) maxX = p.x;
+                if (p.y < minY) minY = p.y;
+                if (p.y > maxY) maxY = p.y;
+            });
+
+            const w = maxX - minX;
+            const h = maxY - minY;
+            const cx = minX + w/2;
+            const cy = minY + h/2;
+
+            // Compute perimeter path distance
+            let perimeter = 0;
+            for (let i = 1; i < points.length; i++) {
+                perimeter += Math.hypot(points[i].x - points[i-1].x, points[i].y - points[i-1].y);
+            }
+
+            const startPt = points[0];
+            const endPt = points[points.length - 1];
+            const closureDistance = Math.hypot(endPt.x - startPt.x, endPt.y - startPt.y);
+            const isClosed = closureDistance < (0.24 * perimeter);
+
+            // Straight Line Check
+            let lineDeviation = 0;
+            points.forEach(p => {
+                const num = Math.abs((endPt.y - startPt.y)*p.x - (endPt.x - startPt.x)*p.y + endPt.x*startPt.y - endPt.y*startPt.x);
+                const den = Math.hypot(endPt.y - startPt.y, endPt.x - startPt.x);
+                if (den > 0) lineDeviation += (num / den);
+            });
+            const meanLineDeviation = lineDeviation / points.length;
+
+            if (meanLineDeviation < 6.0 && !isClosed) {
+                // Check for Arrow (has a sharp return/arrowhead)
+                const arrowLength = Math.hypot(endPt.x - startPt.x, endPt.y - startPt.y);
+                if (perimeter > arrowLength * 1.35) {
+                    return { type: 'Arrow', confidence: 88, params: { x1: startPt.x, y1: startPt.y, x2: endPt.x, y2: endPt.y } };
+                }
+                return { type: 'Line', confidence: 96, params: { x1: startPt.x, y1: startPt.y, x2: endPt.x, y2: endPt.y } };
+            }
+
+            // Closed Shape Diagnostics
+            if (isClosed) {
+                let distSum = 0;
+                points.forEach(p => {
+                    distSum += Math.hypot(p.x - cx, p.y - cy);
+                });
+                const meanRadius = distSum / points.length;
+
+                let variance = 0;
+                points.forEach(p => {
+                    const d = Math.hypot(p.x - cx, p.y - cy);
+                    variance += Math.pow(d - meanRadius, 2);
+                });
+                const stdDev = Math.sqrt(variance / points.length);
+                const ratio = stdDev / meanRadius;
+
+                // 1. Circle
+                if (ratio < 0.14) {
+                    return { type: 'Circle', confidence: 94, params: { cx, cy, r: meanRadius } };
+                }
+                
+                // 2. Ellipse
+                if (ratio >= 0.14 && ratio < 0.24) {
+                    const rx = w / 2;
+                    const ry = h / 2;
+                    return { type: 'Ellipse', confidence: 90, params: { cx, cy, rx, ry } };
+                }
+
+                // 3. Star (high variance in centroid distance)
+                if (ratio >= 0.28) {
+                    return { type: 'Star', confidence: 82, params: { cx, cy, r: meanRadius } };
+                }
+
+                // 4. Triangle (top area narrow compared to bottom)
+                let topPoints = 0, bottomPoints = 0;
+                points.forEach(p => {
+                    if (p.y < minY + h * 0.3) topPoints++;
+                    if (p.y > minY + h * 0.7) bottomPoints++;
+                });
+                if (bottomPoints > topPoints * 1.4) {
+                    return { type: 'Triangle', confidence: 86, params: { x1: cx, y1: minY, x2: minX, y2: maxY, x3: maxX, y3: maxY } };
+                }
+
+                // 5. Rectangle
+                return { type: 'Rectangle', confidence: 85, params: { x: minX, y: minY, w, h } };
+            }
+
+            return null;
+        }
+
+        // Shape confirmation event listeners
+        document.getElementById('btn-shape-ok').addEventListener('click', () => {
+            if (pendingShape) {
+                commitPendingShape(true);
+            }
+        });
+
+        document.getElementById('btn-shape-cancel').addEventListener('click', () => {
+            if (pendingShape) {
+                commitPendingShape(false);
+            }
+        });
+
+        // Common canvas shape drawing helper
+        function drawTargetShape(ctx, shape) {
+            ctx.beginPath();
+            if (shape.type === 'Line') {
+                ctx.moveTo(shape.params.x1, shape.params.y1);
+                ctx.lineTo(shape.params.x2, shape.params.y2);
+                ctx.stroke();
+            } else if (shape.type === 'Circle') {
+                ctx.arc(shape.params.cx, shape.params.cy, shape.params.r, 0, Math.PI * 2);
+                ctx.stroke();
+            } else if (shape.type === 'Rectangle') {
+                ctx.strokeRect(shape.params.x, shape.params.y, shape.params.w, shape.params.h);
+            } else if (shape.type === 'Ellipse') {
+                ctx.ellipse(shape.params.cx, shape.params.cy, shape.params.rx, shape.params.ry, 0, 0, Math.PI * 2);
+                ctx.stroke();
+            } else if (shape.type === 'Triangle') {
+                ctx.moveTo(shape.params.x1, shape.params.y1);
+                ctx.lineTo(shape.params.x2, shape.params.y2);
+                ctx.lineTo(shape.params.x3, shape.params.y3);
+                ctx.closePath();
+                ctx.stroke();
+            } else if (shape.type === 'Star') {
+                const cx = shape.params.cx;
+                const cy = shape.params.cy;
+                const r = shape.params.r;
+                const spikes = 5;
+                let rot = Math.PI / 2 * 3;
+                let x = cx;
+                let y = cy;
+                const step = Math.PI / spikes;
+
+                ctx.moveTo(cx, cy - r);
+                for (let i = 0; i < spikes; i++) {
+                    x = cx + Math.cos(rot) * r;
+                    y = cy + Math.sin(rot) * r;
+                    ctx.lineTo(x, y);
+                    rot += step;
+
+                    x = cx + Math.cos(rot) * (r * 0.4);
+                    y = cy + Math.sin(rot) * (r * 0.4);
+                    ctx.lineTo(x, y);
+                    rot += step;
+                }
+                ctx.closePath();
+                ctx.stroke();
+            } else if (shape.type === 'Arrow') {
+                const x1 = shape.params.x1;
+                const y1 = shape.params.y1;
+                const x2 = shape.params.x2;
+                const y2 = shape.params.y2;
+                
+                ctx.moveTo(x1, y1);
+                ctx.lineTo(x2, y2);
+                ctx.stroke();
+                
+                const angle = Math.atan2(y2 - y1, x2 - x1);
+                const headLength = 15;
+                ctx.moveTo(x2, y2);
+                ctx.lineTo(x2 - headLength * Math.cos(angle - Math.PI / 6), y2 - headLength * Math.sin(angle - Math.PI / 6));
+                ctx.moveTo(x2, y2);
+                ctx.lineTo(x2 - headLength * Math.cos(angle + Math.PI / 6), y2 - headLength * Math.sin(angle + Math.PI / 6));
+                ctx.stroke();
+            }
+        }
+
+        function commitPendingShape(accept) {
+            // Restore original drawing canvas background state first
+            if (drawingHistory.length > 0) {
+                paintCtx.putImageData(drawingHistory[drawingHistory.length - 1], 0, 0);
+            }
+            
+            if (accept && pendingShape) {
+                paintCtx.save();
+                paintCtx.lineWidth = brushSize;
+                paintCtx.strokeStyle = activeColor;
+                paintCtx.lineCap = 'round';
+                paintCtx.lineJoin = 'round';
+                
+                if (activeBrush === 'neon') {
+                    paintCtx.shadowBlur = 10;
+                    paintCtx.shadowColor = activeColor;
+                }
+                
+                drawTargetShape(paintCtx, pendingShape);
+                paintCtx.restore();
+                
+                // Visual spark confirmation burst
+                const cx = pendingShape.params.cx || pendingShape.params.x1 || pendingShape.params.x || (paintCanvas.width / 2);
+                const cy = pendingShape.params.cy || pendingShape.params.y1 || pendingShape.params.y || (paintCanvas.height / 2);
+                createParticlesBurst(cx, cy, 25);
+                logSystem(`Confirmed corrected shape: ${pendingShape.type}`);
+                playBeep(900, 0.12, 'sine');
+            } else {
+                logSystem("Discarded shape correction");
+                playBeep(350, 0.08, 'sawtooth');
+            }
+
+            pendingShape = null;
+            document.getElementById('shape-assist-hud').style.display = 'none';
+        }
+        
+        // ------------------ GESTURE DETECTION STATE MACHINE ------------------
+        let rawGesture = 'none';
+        let prevRawGesture = 'none';
+        let stableGesture = 'none';
+        let gestureTimer = 0;
+        const STABILITY_FRAMES_THRESHOLD = 6;
+        let lastGestureTimestamp = 0;
+        const GESTURE_COOLDOWN_MS = 300; 
+
+        // Per-gesture state tracking to prevent duplicate triggers
+        const gestureStates = {
+            pinch: { name: 'pinch', stable: false, frames: 0 },
+            thumbs_up: { name: 'thumbs_up', stable: false, frames: 0 },
+            thumbs_down: { name: 'thumbs_down', stable: false, frames: 0 },
+            palm: { name: 'palm', stable: false, frames: 0 },
+            fist: { name: 'fist', stable: false, frames: 0 },
+            two_fingers: { name: 'two_fingers', stable: false, frames: 0 }
+        };
+
+        // Fist Countdown variables
+        let isFistCountdown = false;
+        let fistTimerStart = 0;
+        const FIST_SCREENSHOT_HOLD_MS = 1500;
+
+        // Command Mode radial parameters
+        let isCommandMenuOpen = false;
+        let isToolMenuOpen = false;
+        const fistMenu = document.getElementById('fist-menu-overlay');
+        const toolMenu = document.getElementById('tool-menu-overlay');
+        let selectedRadialCommand = 'none';
+        let selectedRadialTool = 'none';
+
+        // Two-hand zooming / panning parameters
+        let canvasZoom = 1.0;
+        let canvasPanX = 0;
+        let canvasPanY = 0;
+        let prevTwoHandDist = null;
+        let prevTwoHandMid = null;
+
+function handleGestureRelease(gesture) {
+            logSystem(`Gesture released: ${gesture.toUpperCase()}`);
+            if (gesture === 'palm') {
+                trackingPausedOverlay.style.display = 'none';
+            }
+            
+            // Release fist to execute command
+            if (gesture === 'fist') {
+                if (isCommandMenuOpen) {
+                    if (selectedRadialCommand !== 'none') {
+                        executeRadialAction('command');
+                    }
+                    closeRadialMenus();
+                }
+            }
+            
+            // Release two_fingers to execute tool selection
+            if (gesture === 'two_fingers') {
+                if (isToolMenuOpen) {
+                    if (selectedRadialTool !== 'none') {
+                        executeRadialAction('tool');
+                    }
+                    closeRadialMenus();
+                }
+            }
+        }
+
+        function handleGestureEventTrigger(gesture) {
+            totalGestures++;
+            document.getElementById('stat-gestures').innerHTML = totalGestures;
+            
+            logSystem(`Gesture recognized: ${gesture.toUpperCase()}`);
+
+            // Thumbs Down -> Undo stroke
+            if (gesture === 'thumbs_down') {
+                if (pendingShape) {
+                    commitPendingShape(false);
+                } else {
+                    undoLastAction();
+                }
+            }
+
+            // Thumbs Up -> Confirm shape assist or radial commands
+            if (gesture === 'thumbs_up') {
+                if (pendingShape) {
+                    commitPendingShape(true);
+                } else if (isCommandMenuOpen) {
+                    executeRadialAction('command');
+                } else if (isToolMenuOpen) {
+                    executeRadialAction('tool');
+                }
+            }
+
+            // Fist -> Open Command Menu overlay
+            if (gesture === 'fist' && !isFistCountdown) {
+                openRadialMenu(fistMenu, 'command');
+            }
+
+            // Two-Fingers -> Open Brushes selector
+            if (gesture === 'two_fingers') {
+                openRadialMenu(toolMenu, 'tool');
+            }
+
+            // Palm -> Close any menus & Pause drawing
+            if (gesture === 'palm') {
+                closeRadialMenus();
+                isDrawing = false;
+                trackingPausedOverlay.style.display = 'flex';
+                logSystem("Spatial tracking paused");
+                playBeep(220, 0.12, 'sawtooth');
+            }
+        }
+        
+        // Tab switching logic
+        const tabs = document.querySelectorAll('.nav-tab');
+        const contents = document.querySelectorAll('.tab-content');
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                tabs.forEach(t => t.classList.remove('active'));
+                contents.forEach(c => c.classList.remove('active'));
+                
+                tab.classList.add('active');
+                const targetTab = tab.getAttribute('data-tab');
+                document.getElementById(`tab-content-${targetTab}`).classList.add('active');
+                
+                playBeep(650, 0.05);
+                
+                // Triggers resize paint canvas when tab-content-studio is highlighted
+                if (targetTab === 'studio') {
+                    setTimeout(resizePaintCanvas, 50);
+                }
+            });
+        });
+
+
+        // Onboarding overlay close listener
+        const onboardingOverlay = document.getElementById('onboarding-overlay');
+        const btnCloseOnboarding = document.getElementById('btn-close-onboarding');
+        
+        if (localStorage.getItem('aura_onboarded') === 'true') {
+            onboardingOverlay.style.display = 'none';
+        }
+        
+        btnCloseOnboarding.addEventListener('click', () => {
+            onboardingOverlay.style.display = 'none';
+            localStorage.setItem('aura_onboarded', 'true');
+            playBeep(800, 0.1);
+        });
+
+        // Collapsible Performance HUD listener
+        const btnToggleHud = document.getElementById('btn-toggle-hud');
+        const hudPerfContent = document.getElementById('hud-perf-content');
+        let isHudOpen = false;
+        
+        btnToggleHud.addEventListener('click', () => {
+            isHudOpen = !isHudOpen;
+            if (isHudOpen) {
+                hudPerfContent.style.display = 'grid';
+                btnToggleHud.querySelector('span').innerHTML = '▼';
+            } else {
+                hudPerfContent.style.display = 'none';
+                btnToggleHud.querySelector('span').innerHTML = '▶';
+            }
+            playBeep(650, 0.05);
+        });
+
+        // Elements references
+        const videoElement = document.getElementById('input-video');
+        const canvasElement = document.getElementById('webcam-canvas');
+        const canvasCtx = canvasElement.getContext('2d');
+        const camHudStatus = document.getElementById('cam-hud-status');
+        const sysPulse = document.getElementById('sys-pulse');
+        const virtualCursor = document.getElementById('virtual-cursor');
+        const workspaceBody = document.getElementById('workspace-body');
+        const paintCanvas = document.getElementById('paint-canvas');
+        const paintCtx = paintCanvas.getContext('2d');
+        const fistCountdownOverlay = document.getElementById('fist-countdown');
+        
+        // Guided Auto-Calibration elements and variables
+        const autoCalOverlay = document.getElementById('auto-cal-overlay');
+        const autoCalTitle = document.getElementById('auto-cal-title');
+        const autoCalInstructions = document.getElementById('auto-cal-instructions');
+        const autoCalProgressFill = document.getElementById('auto-cal-progress-fill');
+        const autoCalStatus = document.getElementById('auto-cal-status');
+        const btnSkipCal = document.getElementById('btn-skip-cal');
+        const btnToggleAutoCal = document.getElementById('btn-toggle-auto-cal');
+        const trackingPausedOverlay = document.getElementById('tracking-paused-overlay');
+        
+        let isCalibrating = false;
+        let calStage = 0;
+        let calFrames = 0;
+        let calData = {
+            openDists: [],
+            pinchDists: [],
+            minX: 1.0,
+            maxX: 0.0,
+            minY: 1.0,
+            maxY: 0.0
+        };
+
+        btnToggleAutoCal.addEventListener('click', () => {
+            isCalibrating = true;
+            calStage = 1;
+            calFrames = 0;
+            calData = {
+                openDists: [],
+                pinchDists: [],
+                minX: 1.0,
+                maxX: 0.0,
+                minY: 1.0,
+                maxY: 0.0
+            };
+            autoCalOverlay.style.display = 'flex';
+            autoCalProgressFill.style.width = '0%';
+            autoCalTitle.innerHTML = 'STAGE 1: OPEN PALM';
+            autoCalInstructions.innerHTML = 'Hold your open hand clearly in front of the camera.';
+            autoCalStatus.innerHTML = 'Calibrating hand scale...';
+            logSystem("Guided Auto-Calibration Wizard initialized");
+            playBeep(880, 0.1);
+        });
+
+        btnSkipCal.addEventListener('click', () => {
+            isCalibrating = false;
+            autoCalOverlay.style.display = 'none';
+            logSystem("Calibration sequence cancelled by user");
+            playBeep(300, 0.08, 'sawtooth');
+        });
+        const countdownLabel = document.getElementById('countdown-label');
+        const galleryList = document.getElementById('gallery-list');
+        const noCapturesText = document.getElementById('no-captures');
+        
+        // HUD labels
+        const hudCoordinates = document.getElementById('hud-coordinates');
+        const hudFps = document.getElementById('hud-fps');
+        const hudLog = document.getElementById('hud-log');
+
+        // Sliders Elements
+        const cfgDetect = document.getElementById('cfg-detect');
+        const cfgTrack = document.getElementById('cfg-track');
+        const cfgSmoothing = document.getElementById('cfg-smoothing');
+        const cfgPinch = document.getElementById('cfg-pinch');
+        const cfgBoxLeft = document.getElementById('cfg-left');
+        const cfgBoxRight = document.getElementById('cfg-right');
+        const cfgBoxTop = document.getElementById('cfg-top');
+        const cfgBoxBottom = document.getElementById('cfg-bottom');
+
+        // Slider Labels
+        const lblCfgDetect = document.getElementById('lbl-cfg-detect');
+        const lblCfgTrack = document.getElementById('lbl-cfg-track');
+        const lblCfgSmoothing = document.getElementById('lbl-cfg-smoothing');
+        const lblCfgPinch = document.getElementById('lbl-cfg-pinch');
+        const lblCfgLeft = document.getElementById('lbl-cfg-left');
+        const lblCfgRight = document.getElementById('lbl-cfg-right');
+        const lblCfgTop = document.getElementById('lbl-cfg-top');
+        const lblCfgBottom = document.getElementById('lbl-cfg-bottom');
+        const svgActiveBox = document.getElementById('svg-active-box');
+
+        // Dynamic parameters updated instantly in JS thread
+        const bounds = {
+            left: parseFloat(cfgBoxLeft.value),
+            right: parseFloat(cfgBoxRight.value),
+            top: parseFloat(cfgBoxTop.value),
+            bottom: parseFloat(cfgBoxBottom.value),
+            clickThresh: parseFloat(cfgPinch.value),
+            smoothing: parseFloat(cfgSmoothing.value)
+        };
+
+        // Telemetry tracker variables
+        let totalStrokes = 0;
+        let totalGestures = 0;
+        let pixelsTraveled = 0;
+        let startSessionTime = Date.now();
+
+        // Analytics ticker
+        setInterval(() => {
+            const diffSec = Math.floor((Date.now() - startSessionTime) / 1000);
+            const m = Math.floor(diffSec / 60).toString().padStart(2, '0');
+            const s = (diffSec % 60).toString().padStart(2, '0');
+            document.getElementById('stat-time').innerHTML = `${m}:${s}`;
+        }, 1000);
+
+        function updateCalibrationSettings() {
+            bounds.left = parseFloat(cfgBoxLeft.value);
+            bounds.right = parseFloat(cfgBoxRight.value);
+            bounds.top = parseFloat(cfgBoxTop.value);
+            bounds.bottom = parseFloat(cfgBoxBottom.value);
+            bounds.clickThresh = parseFloat(cfgPinch.value);
+            bounds.smoothing = parseFloat(cfgSmoothing.value);
+            
+            // Labels
+            lblCfgDetect.innerHTML = parseFloat(cfgDetect.value).toFixed(2);
+            lblCfgTrack.innerHTML = parseFloat(cfgTrack.value).toFixed(2);
+            lblCfgSmoothing.innerHTML = parseFloat(cfgSmoothing.value).toFixed(2);
+            lblCfgPinch.innerHTML = parseFloat(cfgPinch.value).toFixed(2);
+            lblCfgLeft.innerHTML = parseFloat(cfgBoxLeft.value).toFixed(2);
+            lblCfgRight.innerHTML = parseFloat(cfgBoxRight.value).toFixed(2);
+            lblCfgTop.innerHTML = parseFloat(cfgBoxTop.value).toFixed(2);
+            lblCfgBottom.innerHTML = parseFloat(cfgBoxBottom.value).toFixed(2);
+            
+            // Scale and reposition SVG Active Bounding box dynamically
+            const svgWidth = document.getElementById('active-box-svg-preview').clientWidth || 200;
+            const svgHeight = document.getElementById('active-box-svg-preview').clientHeight || 150;
+            
+            const x = bounds.left * svgWidth;
+            const y = bounds.top * svgHeight;
+            const w = (bounds.right - bounds.left) * svgWidth;
+            const h = (bounds.bottom - bounds.top) * svgHeight;
+            
+            svgActiveBox.setAttribute('x', x);
+            svgActiveBox.setAttribute('y', y);
+            svgActiveBox.setAttribute('width', w);
+            svgActiveBox.setAttribute('height', h);
+
+            // Re-apply options to MediaPipe hands object
+            if (hands) {
+                hands.setOptions({
+                    maxNumHands: 2,
+                    modelComplexity: 1,
+                    minDetectionConfidence: parseFloat(cfgDetect.value),
+                    minTrackingConfidence: parseFloat(cfgTrack.value)
+                });
+            }
+        }
+
+        [cfgDetect, cfgTrack, cfgSmoothing, cfgPinch, cfgBoxLeft, cfgBoxRight, cfgBoxTop, cfgBoxBottom].forEach(slider => {
+            slider.addEventListener('input', updateCalibrationSettings);
+            slider.addEventListener('change', () => {
+                logSystem("Calibration updated");
+                playBeep(650, 0.05);
+            });
+        });
+
+// Setup Paint Canvas size
+// Setup Paint Canvas size
+        function resizePaintCanvas() {
+            const w = paintCanvas.offsetWidth || 800;
+            const h = paintCanvas.offsetHeight || 600;
+            
+            let prevData = null;
+            if (paintCanvas.width > 0 && paintCanvas.height > 0) {
+                try {
+                    prevData = paintCtx.getImageData(0, 0, paintCanvas.width, paintCanvas.height);
+                } catch (e) {
+                    console.warn("Could not backup canvas data:", e);
+                }
+            }
+            
+            paintCanvas.width = w;
+            paintCanvas.height = h;
+            
+            if (prevData) {
+                try {
+                    paintCtx.putImageData(prevData, 0, 0);
+                } catch (e) {
+                    console.warn("Could not restore canvas data:", e);
+                }
+            }
+            paintCtx.lineCap = 'round';
+            paintCtx.lineJoin = 'round';
+        }
+        window.addEventListener('load', resizePaintCanvas);
+        window.addEventListener('resize', resizePaintCanvas);
+
+        // Core Drawing configurations
+        let activeColor = '#8b5cf6';
+        let activeMode = 'draw'; 
+        let brushSize = 3;
+        let activeBrush = 'pencil';
+        let activeBgStyle = 'solid';
+        let isDrawing = false;
+        let isMirrored = true;
+        let smoothX = 0;
+        let smoothY = 0;
+        let lastPaintX = 0;
+        let lastPaintY = 0;
+        let isHandDetected = false;
+        let radialMenuCenter = { x: 0, y: 0 };
+        let lastHandLandmarks = null;
+
+        // Undo Snapshot Stack
+        let drawingHistory = [];
+        function saveHistoryState() {
+            if (paintCanvas.width > 0 && paintCanvas.height > 0) {
+                if (drawingHistory.length >= 25) {
+                    drawingHistory.shift();
+                }
+                try {
+                    drawingHistory.push(paintCtx.getImageData(0, 0, paintCanvas.width, paintCanvas.height));
+                } catch (e) {
+                    console.error("Failed to save history state:", e);
+                }
+            }
+            totalStrokes++;
+            document.getElementById('stat-strokes').innerHTML = totalStrokes;
+        }
+
+        function undoLastAction() {
+            if (drawingHistory.length > 0) {
+                const prevSnapshot = drawingHistory.pop();
+                paintCtx.putImageData(prevSnapshot, 0, 0);
+                logSystem("Undo stroke committed");
+                playBeep(350, 0.08, 'triangle');
+            } else {
+                logSystem("Nothing to undo");
+                playBeep(180, 0.08, 'sawtooth');
+            }
+        }
+
+        function clearCanvas() {
+            saveHistoryState();
+            paintCtx.clearRect(0, 0, paintCanvas.width, paintCanvas.height);
+            logSystem("Canvas cleared");
+            playBeep(200, 0.15, 'triangle');
+        }
+
+        function saveCanvasImage() {
+            try {
+                const downloadCanvas = document.createElement('canvas');
+                downloadCanvas.width = paintCanvas.width;
+                downloadCanvas.height = paintCanvas.height;
+                const dCtx = downloadCanvas.getContext('2d');
+                
+                // Draw background matching plain dark
+                dCtx.fillStyle = '#09090b';
+                dCtx.fillRect(0, 0, downloadCanvas.width, downloadCanvas.height);
+                dCtx.drawImage(paintCanvas, 0, 0);
+                
+                const dataURL = downloadCanvas.toDataURL("image/png");
+                const link = document.createElement('a');
+                link.download = `aura_painting_${Math.floor(Date.now()/1000)}.png`;
+                link.href = dataURL;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                
+                logSystem("Artwork saved successfully");
+                playBeep(950, 0.1, 'sine');
+            } catch(e) {
+                logSystem("Save error: " + e);
+            }
+        }
+
+        // Toolbar Events
+        document.querySelectorAll('.color-dot').forEach(dot => {
+            dot.addEventListener('click', () => {
+                document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('active'));
+                dot.classList.add('active');
+                activeColor = dot.getAttribute('data-color');
+                activeMode = 'draw';
+                document.getElementById('btn-mode-draw').classList.add('active');
+                document.getElementById('btn-mode-erase').classList.remove('active');
+                playBeep(600, 0.05);
+            });
+        });
+
+        document.getElementById('custom-color').addEventListener('input', (e) => {
+            document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('active'));
+            activeColor = e.target.value;
+            activeMode = 'draw';
+            document.getElementById('btn-mode-draw').classList.add('active');
+            document.getElementById('btn-mode-erase').classList.remove('active');
+        });
+
+        document.getElementById('btn-mode-draw').addEventListener('click', () => {
+            activeMode = 'draw';
+            document.getElementById('btn-mode-draw').classList.add('active');
+            document.getElementById('btn-mode-erase').classList.remove('active');
+            playBeep(550, 0.05);
+        });
+
+        document.getElementById('btn-mode-erase').addEventListener('click', () => {
+            activeMode = 'erase';
+            document.getElementById('btn-mode-erase').classList.add('active');
+            document.getElementById('btn-mode-draw').classList.remove('active');
+            playBeep(550, 0.05);
+        });
+
+        document.querySelectorAll('.size-dot').forEach(dot => {
+            dot.addEventListener('click', () => {
+                document.querySelectorAll('.size-dot').forEach(d => d.classList.remove('active'));
+                dot.classList.add('active');
+                brushSize = parseInt(dot.getAttribute('data-size'));
+                playBeep(650, 0.05);
+            });
+        });
+
+        document.getElementById('sel-brush').addEventListener('change', (e) => {
+            activeBrush = e.target.value;
+            const magicThemes = ['celestial', 'plasma', 'ember', 'frost', 'sakura', 'quantum'];
+            if (magicThemes.includes(activeBrush)) {
+                cfgParticleTheme.value = activeBrush;
+            } else if (activeBrush === 'magic') {
+                cfgParticleTheme.value = 'celestial';
+            }
+            playBeep(600, 0.05);
+        });
+
+        const paintCanvasEl = document.getElementById('paint-canvas');
+        document.getElementById('sel-bg-style').addEventListener('change', (e) => {
+            activeBgStyle = e.target.value;
+            // Apply background style class
+            paintCanvasEl.className = '';
+            if (activeBgStyle !== 'solid') {
+                paintCanvasEl.classList.add(activeBgStyle);
+            }
+            playBeep(600, 0.05);
+        });
+
+        document.getElementById('btn-mirror').addEventListener('click', () => {
+            isMirrored = !isMirrored;
+            const btnMirror = document.getElementById('btn-mirror');
+            if (isMirrored) {
+                btnMirror.classList.add('active');
+                canvasElement.style.transform = 'scaleX(-1)';
+            } else {
+                btnMirror.classList.remove('active');
+                canvasElement.style.transform = 'scaleX(1)';
+            }
+            playBeep(550, 0.05);
+        });
+
+        document.getElementById('btn-undo-action').addEventListener('click', undoLastAction);
+        document.getElementById('btn-clear-canvas').addEventListener('click', clearCanvas);
+        document.getElementById('btn-save-canvas').addEventListener('click', saveCanvasImage);
+
+        // System logger helper
+        function logSystem(msg) {
+            hudLog.innerHTML = msg;
+            
+            // Log to lab logs
+            const labLogs = document.getElementById('gesture-logs');
+            labLogs.innerHTML += `<br>[${new Date().toLocaleTimeString()}] ${msg}`;
+            labLogs.scrollTop = labLogs.scrollHeight;
+        }
+
+// Particle Sandbox Animation Loops
+        const sandboxCanvas = document.getElementById('sandbox-canvas');
+        const sandboxCtx = sandboxCanvas.getContext('2d');
+        let sandboxParticles = [];
+
+        function resizeSandboxCanvas() {
+            sandboxCanvas.width = sandboxCanvas.offsetWidth;
+            sandboxCanvas.height = sandboxCanvas.offsetHeight;
+        }
+        window.addEventListener('load', resizeSandboxCanvas);
+
+        sandboxCanvas.addEventListener('mousemove', (e) => {
+            const rect = sandboxCanvas.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            const mouseY = e.clientY - rect.top;
+            
+            const maxBudget = parseInt(cfgMaxParticles.value);
+            const speedCoeff = parseFloat(cfgParticleSpeed.value);
+            const theme = cfgParticleTheme.value;
+            
+            for (let i = 0; i < 2; i++) {
+                if (sandboxParticles.length >= maxBudget) sandboxParticles.shift();
+                sandboxParticles.push(new Particle(mouseX, mouseY, theme));
+            }
+        });
+
+        function animateSandbox() {
+            sandboxCtx.clearRect(0, 0, sandboxCanvas.width, sandboxCanvas.height);
+            
+            // Draw dark backdrop gradient
+            sandboxCtx.fillStyle = '#020617';
+            sandboxCtx.fillRect(0, 0, sandboxCanvas.width, sandboxCanvas.height);
+
+            for (let i = sandboxParticles.length - 1; i >= 0; i--) {
+                const p = sandboxParticles[i];
+                p.update(16); // assume ~16.6ms frame time
+                if (p.life <= 0) {
+                    sandboxParticles.splice(i, 1);
+                } else {
+                    p.draw(sandboxCtx);
+                }
+            }
+            requestAnimationFrame(animateSandbox);
+        }
+        requestAnimationFrame(animateSandbox);
+
+        // ------------------ SHAPE ASSISTANT (GEOMETRIC CLASSIFIER) ------------------
+        let isShapeAssistActive = false;
+        let strokePoints = [];
+        let pendingShape = null;
+
+// ------------------ REPLAY ENGINE PLAYER ------------------
+        let recordedStrokes = []; // coordinates trajectory history
+        let isReplaying = false;
+        let replayFrameIndex = 0;
+        let replayCanvas = document.getElementById('replay-canvas');
+        let replayCtx = replayCanvas.getContext('2d');
+        let replayTimer = null;
+
+        document.getElementById('btn-replay-play').addEventListener('click', () => {
+            if (recordedStrokes.length === 0) {
+                logSystem("No drawing coordinates recorded yet.");
+                playBeep(250, 0.08, 'sawtooth');
+                return;
+            }
+            
+            isReplaying = true;
+            document.getElementById('btn-replay-play').classList.add('active');
+            document.getElementById('btn-replay-pause').classList.remove('active');
+            
+            replayCanvas.width = replayCanvas.offsetWidth;
+            replayCanvas.height = replayCanvas.offsetHeight;
+            
+            replayCtx.clearRect(0, 0, replayCanvas.width, replayCanvas.height);
+            replayFrameIndex = 0;
+            
+            if (replayTimer) clearInterval(replayTimer);
+            replayTimer = setInterval(tickReplayPlayer, 30);
+            logSystem("Replaying spatial drawing coordinates...");
+            playBeep(700, 0.1, 'sine');
+        });
+
+        document.getElementById('btn-replay-pause').addEventListener('click', () => {
+            isReplaying = false;
+            document.getElementById('btn-replay-pause').classList.add('active');
+            document.getElementById('btn-replay-play').classList.remove('active');
+            if (replayTimer) clearInterval(replayTimer);
+        });
+
+        document.getElementById('btn-replay-reset').addEventListener('click', () => {
+            isReplaying = false;
+            if (replayTimer) clearInterval(replayTimer);
+            replayCtx.clearRect(0, 0, replayCanvas.width, replayCanvas.height);
+            document.getElementById('replay-hud-status').innerHTML = `Player idle. Recorded Strokes: ${recordedStrokes.length}`;
+            playBeep(300, 0.08);
+        });
+
+        function tickReplayPlayer() {
+            if (!isReplaying || replayFrameIndex >= recordedStrokes.length) {
+                clearInterval(replayTimer);
+                isReplaying = false;
+                document.getElementById('btn-replay-play').classList.remove('active');
+                logSystem("Replay finished.");
+                return;
+            }
+
+            const pt = recordedStrokes[replayFrameIndex];
+            
+            // Draw on replay canvas
+            replayCtx.save();
+            replayCtx.lineWidth = pt.size;
+            replayCtx.strokeStyle = pt.color;
+            replayCtx.lineCap = 'round';
+            
+            if (pt.isStart || replayFrameIndex === 0) {
+                replayCtx.beginPath();
+                replayCtx.moveTo(pt.x, pt.y);
+            } else {
+                const prevPt = recordedStrokes[replayFrameIndex - 1];
+                replayCtx.beginPath();
+                replayCtx.moveTo(prevPt.x, prevPt.y);
+                replayCtx.lineTo(pt.x, pt.y);
+                replayCtx.stroke();
+            }
+            replayCtx.restore();
+
+            // Generate magical replay particles matching speed!
+            const speed = 1.0;
+            const maxBudget = parseInt(cfgMaxParticles.value);
+            const theme = cfgParticleTheme.value;
+            
+            // Draw sandbox style overlay
+            createParticlesBurst(pt.x, pt.y, 2);
+
+            document.getElementById('replay-hud-status').innerHTML = `Playing frame: ${replayFrameIndex} / ${recordedStrokes.length}`;
+            replayFrameIndex++;
+        }
+
+        // ------------------ MEDIAPIPE CORE VISION LOOP ------------------
+        let fpsCounter = 0;
+        let lastFpsTime = Date.now();
+        let wasmFps = 60;
+
+        function onResults(results) {
+            const startExecutionTime = performance.now();
+            // FPS telemetry
+            fpsCounter++;
+            const now = Date.now();
+            if (now - lastFpsTime >= 1000) {
+                wasmFps = fpsCounter;
+                hudFps.innerHTML = `FPS: ${wasmFps}`;
+                document.getElementById('hud-fps').innerHTML = `FPS: ${wasmFps}`;
+                document.getElementById('metric-fps').innerHTML = wasmFps;
+                fpsCounter = 0;
+                lastFpsTime = now;
+            }
+
+            // Real processing latency calculation
+            const latencyMs = Math.round(performance.now() - frameStartTimestamp);
+            document.getElementById('metric-latency').innerHTML = `${latencyMs} ms`;
+
+            if (canvasElement.width !== results.image.width || canvasElement.height !== results.image.height) {
+                canvasElement.width = results.image.width;
+                canvasElement.height = results.image.height;
+            }
+
+            canvasCtx.save();
+            canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+            canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
+            
+            // Render Bounding Active Region Box overlay
+            const boxX = bounds.left * canvasElement.width;
+            const boxY = bounds.top * canvasElement.height;
+            const boxW = (bounds.right - bounds.left) * canvasElement.width;
+            const boxH = (bounds.bottom - bounds.top) * canvasElement.height;
+            
+            canvasCtx.strokeStyle = "rgba(6, 182, 212, 0.65)";
+            canvasCtx.lineWidth = 1.5;
+            canvasCtx.setLineDash([8, 4]);
+            canvasCtx.strokeRect(boxX, boxY, boxW, boxH);
+            
+            canvasCtx.restore();
+
+            // Run auto-calibration step if active and return
+            if (isCalibrating) {
+                runAutoCalibrationStep(results);
+                return;
+            }
+
+            let detected = false;
+
+            // Two-hand zooming / panning tracking logic
+            if (results.multiHandLandmarks && results.multiHandLandmarks.length >= 2) {
+                detected = true;
+                isHandDetected = true;
+                trackingPausedOverlay.style.display = 'none';
+                sysPulse.classList.add('active');
+                
+                const h1 = results.multiHandLandmarks[0];
+                const h2 = results.multiHandLandmarks[1];
+                
+                drawConnectors(canvasCtx, h1, HAND_CONNECTIONS, {color: '#8b5cf6', lineWidth: 1.5});
+                drawLandmarks(canvasCtx, h1, {color: '#ec4899', lineWidth: 0.5, radius: 1.5});
+                drawConnectors(canvasCtx, h2, HAND_CONNECTIONS, {color: '#8b5cf6', lineWidth: 1.5});
+                drawLandmarks(canvasCtx, h2, {color: '#ec4899', lineWidth: 0.5, radius: 1.5});
+                
+                // Helper to classify if a hand is in a closed fist state
+                const isHandFist = (landmarks) => {
+                    const handScale = Math.hypot(landmarks[0].x - landmarks[9].x, landmarks[0].y - landmarks[9].y);
+                    const normDist = (a, b) => Math.hypot(landmarks[a].x - landmarks[b].x, landmarks[a].y - landmarks[b].y) / handScale;
+                    
+                    const isIndexExtended = landmarks[8].y < landmarks[6].y;
+                    const isMiddleExtended = landmarks[12].y < landmarks[10].y;
+                    const isRingExtended = landmarks[16].y < landmarks[14].y;
+                    const isPinkyExtended = landmarks[20].y < landmarks[18].y;
+                    
+                    const extendedFingers = [isIndexExtended, isMiddleExtended, isRingExtended, isPinkyExtended].filter(Boolean).length;
+                    return extendedFingers === 0 && normDist(4, 5) < 0.22;
+                };
+
+                const h1Fist = isHandFist(h1);
+                const h2Fist = isHandFist(h2);
+
+                if (h1Fist && h2Fist) {
+                    camHudStatus.innerHTML = "ZOOM LOCKED (RELEASE ONE HAND TO DRAW)";
+                    camHudStatus.style.color = "var(--success)";
+                    // Freeze zoom & pan by resetting baseline tracking distance / midpoint
+                    prevTwoHandDist = null;
+                    prevTwoHandMid = null;
+                } else {
+                    camHudStatus.innerHTML = "ZOOM & PAN ACTIVE";
+                    camHudStatus.style.color = "var(--secondary)";
+                    
+                    const pt1 = { x: h1[8].x, y: h1[8].y };
+                    const pt2 = { x: h2[8].x, y: h2[8].y };
+                    
+                    const currentDist = Math.hypot(pt2.x - pt1.x, pt2.y - pt1.y);
+                    const currentMid = { x: (pt1.x + pt2.x) / 2, y: (pt1.y + pt2.y) / 2 };
+                    
+                    if (prevTwoHandDist !== null) {
+                        const zoomFactor = currentDist / prevTwoHandDist;
+                        canvasZoom = Math.max(0.5, Math.min(3.0, canvasZoom * zoomFactor));
+                        
+                        const dx = (isMirrored ? -(currentMid.x - prevTwoHandMid.x) : (currentMid.x - prevTwoHandMid.x)) * paintCanvas.offsetWidth;
+                        const dy = (currentMid.y - prevTwoHandMid.y) * paintCanvas.offsetHeight;
+                        canvasPanX += dx;
+                        canvasPanY += dy;
+                        
+                        paintCanvas.style.transform = `translate(${canvasPanX}px, ${canvasPanY}px) scale(${canvasZoom})`;
+                        const pC = document.getElementById('particle-canvas');
+                        if (pC) {
+                            pC.style.transform = `translate(${canvasPanX}px, ${canvasPanY}px) scale(${canvasZoom})`;
+                        }
+                        
+                        logSystem(`Zoom: ${canvasZoom.toFixed(2)}x | Pan: (${Math.round(canvasPanX)}, ${Math.round(canvasPanY)})`);
+                    }
+                    
+                    prevTwoHandDist = currentDist;
+                    prevTwoHandMid = currentMid;
+                }
+                
+                document.getElementById('magic-cursor-glow').style.display = 'none';
+                document.getElementById('metric-hands').innerHTML = "2";
+                return;
+            } else {
+                prevTwoHandDist = null;
+                prevTwoHandMid = null;
+                document.getElementById('metric-hands').innerHTML = (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) ? "1" : "0";
+            }
+
+            if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
+                detected = true;
+                const landmarks = results.multiHandLandmarks[0];
+                lastHandLandmarks = landmarks;
+
+                drawConnectors(canvasCtx, landmarks, HAND_CONNECTIONS, {color: '#8b5cf6', lineWidth: 1.5});
+                drawLandmarks(canvasCtx, landmarks, {color: '#ec4899', lineWidth: 0.5, radius: 1.5});
+
+                const thumbTip = landmarks[4];
+                const indexTip = landmarks[8];
+
+                // Scale hand scale normalization factor
+                const handScale = Math.hypot(landmarks[0].x - landmarks[9].x, landmarks[0].y - landmarks[9].y);
+                const normDist = (a, b) => Math.hypot(landmarks[a].x - landmarks[b].x, landmarks[a].y - landmarks[b].y) / handScale;
+
+                // Classified gestures checks with pinch hysteresis
+                let isPinch = false;
+                const pinchDistVal = normDist(4, 8);
+                if (isDrawing) {
+                    isPinch = pinchDistVal < (bounds.clickThresh * 1.25);
+                } else {
+                    isPinch = pinchDistVal < bounds.clickThresh;
+                }
+
+                const isIndexExtended = landmarks[8].y < landmarks[6].y;
+                const isMiddleExtended = landmarks[12].y < landmarks[10].y;
+                const isRingExtended = landmarks[16].y < landmarks[14].y;
+                const isPinkyExtended = landmarks[20].y < landmarks[18].y;
+                
+                const extendedFingers = [isIndexExtended, isMiddleExtended, isRingExtended, isPinkyExtended].filter(Boolean).length;
+
+                // Gesture Classification mapping
+                rawGesture = 'none';
+                
+                if (isPinch) {
+                    rawGesture = 'pinch';
+                } else if (extendedFingers === 4) {
+                    rawGesture = 'palm';
+                } else if (extendedFingers === 0 && normDist(4, 5) < 0.22) {
+                    rawGesture = 'fist';
+                } else if (landmarks[8].y < landmarks[6].y && landmarks[12].y < landmarks[10].y && extendedFingers === 2) {
+                    rawGesture = 'two_fingers';
+                } else if (landmarks[4].y < landmarks[2].y && extendedFingers === 0) {
+                    rawGesture = 'thumbs_up';
+                } else if (landmarks[4].y > landmarks[2].y && extendedFingers === 0) {
+                    rawGesture = 'thumbs_down';
+                }
+
+                // Gesture Classification State Machine with Edge Triggers
+                Object.keys(gestureStates).forEach(g => {
+                    if (rawGesture === g) {
+                        gestureStates[g].frames++;
+                        if (gestureStates[g].frames >= STABILITY_FRAMES_THRESHOLD) {
+                            if (!gestureStates[g].stable) {
+                                gestureStates[g].stable = true;
+                                stableGesture = g;
+                                handleGestureEventTrigger(g);
+                            }
+                        }
+                    } else {
+                        if (gestureStates[g].stable) {
+                            gestureStates[g].stable = false;
+                            gestureStates[g].frames = 0;
+                            handleGestureRelease(g);
+                        } else {
+                            gestureStates[g].frames = 0;
+                        }
+                    }
+                });
+
+                // Set stable gesture to current stable one (or none if none are stable)
+                let activeStable = Object.values(gestureStates).find(s => s.stable);
+                stableGesture = activeStable ? activeStable.name : 'none';
+
+                // Smooth coordinates using EMA Filter
+                let normX = (indexTip.x - bounds.left) / (bounds.right - bounds.left);
+                let normY = (indexTip.y - bounds.top) / (bounds.bottom - bounds.top);
+                normX = Math.max(0.0, Math.min(1.0, normX));
+                normY = Math.max(0.0, Math.min(1.0, normY));
+
+                if (isMirrored) {
+                    normX = 1.0 - normX;
+                }
+
+                const workWidth = paintCanvas.offsetWidth;
+                const workHeight = paintCanvas.offsetHeight;
+                const targetX = normX * workWidth;
+                const targetY = normY * workHeight;
+
+                smoothX = smoothX + bounds.smoothing * (targetX - smoothX);
+                smoothY = smoothY + bounds.smoothing * (targetY - smoothY);
+
+                // Update Virtual Cursor position HUD
+                hudCoordinates.innerHTML = `Cursor: (${Math.round(smoothX)}, ${Math.round(smoothY)})`;
+                
+                // VisualCursor tracking dot style
+                document.getElementById('magic-cursor-glow').style.display = 'block';
+                document.getElementById('magic-cursor-glow').style.left = `${paintCanvas.offsetLeft + smoothX}px`;
+                document.getElementById('magic-cursor-glow').style.top = `${paintCanvas.offsetTop + smoothY}px`;
+
+                // Calculate distance pixels traveled
+                const distTraveled = Math.hypot(smoothX - lastPaintX, smoothY - lastPaintY);
+                if (distTraveled > 1 && distTraveled < 100) {
+                    pixelsTraveled += Math.round(distTraveled);
+                    document.getElementById('stat-pixels').innerHTML = `${pixelsTraveled} px`;
+                }
+
+                // 1. PINCH DRAWING
+                if (stableGesture === 'pinch') {
+                    handleVirtualPinchDrag(smoothX, smoothY);
+                } else {
+                    if (isDrawing) {
+                        isDrawing = false;
+                        handleStrokeFinishEvent();
+                    }
+                }
+
+                // 2. FIST CAPTURE TIMER
+                if (stableGesture === 'fist' && !isCommandMenuOpen && !isToolMenuOpen) {
+                    if (!isFistCountdown) {
+                        isFistCountdown = true;
+                        fistTimerStart = Date.now();
+                        fistCountdownOverlay.style.display = 'flex';
+                        playBeep(450, 0.08, 'triangle');
+                    }
+                    
+                    const timeHeld = Date.now() - fistTimerStart;
+                    const pct = Math.min(100, Math.floor((timeHeld / FIST_SCREENSHOT_HOLD_MS) * 100));
+                    countdownLabel.innerHTML = `TAKING CAPTURE IN ${pct}%`;
+                    
+                    if (timeHeld >= FIST_SCREENSHOT_HOLD_MS) {
+                        triggerVirtualCanvasCapture();
+                        isFistCountdown = false;
+                        fistCountdownOverlay.style.display = 'none';
+                        stableGesture = 'none';
+                        gestureStates.fist.stable = false; // force reset
+                    }
+                } else {
+                    if (isFistCountdown) {
+                        isFistCountdown = false;
+                        fistCountdownOverlay.style.display = 'none';
+                    }
+                }
+
+                // 3. RADIAL MENU INTERACTION
+                if (isCommandMenuOpen) {
+                    updateRadialMenuHoverState(fistMenu, landmarks, 'command');
+                } else if (isToolMenuOpen) {
+                    updateRadialMenuHoverState(toolMenu, landmarks, 'tool');
+                }
+
+                // Update visual metrics in Lab dashboard meters
+                updateLabMeters(rawGesture);
+
+            } else {
+                if (isFistCountdown) {
+                    isFistCountdown = false;
+                    fistCountdownOverlay.style.display = 'none';
+                }
+                
+                // Hide virtual cursor dot
+                document.getElementById('magic-cursor-glow').style.display = 'none';
+
+                // Clean reset of all gesture states on tracking lost
+                rawGesture = 'none';
+                stableGesture = 'none';
+                Object.keys(gestureStates).forEach(g => {
+                    if (gestureStates[g].stable) {
+                        gestureStates[g].stable = false;
+                        gestureStates[g].frames = 0;
+                        handleGestureRelease(g);
+                    } else {
+                        gestureStates[g].frames = 0;
+                    }
+                });
+            }
+
+            // Sync presence flag globally
+            isHandDetected = detected;
+
+            // Pulse indicators
+            if (detected) {
+                sysPulse.classList.add('active');
+                camHudStatus.innerHTML = "SYSTEM ACTIVE - TRACKING GESTURES";
+                camHudStatus.style.color = "var(--success)";
+            } else {
+                sysPulse.classList.remove('active');
+                camHudStatus.innerHTML = "SEARCHING FOR HAND...";
+                camHudStatus.style.color = "var(--danger)";
+            }
+
+            // Update execution performance metrics
+            const executionTimeMs = Math.round(performance.now() - startExecutionTime);
+            const hudFrameTime = document.getElementById('metric-frame-time');
+            if (hudFrameTime) {
+                hudFrameTime.innerHTML = `${executionTimeMs}ms`;
+            }
+            const hudMetricDetect = document.getElementById('metric-detect');
+            if (hudMetricDetect) {
+                hudMetricDetect.innerHTML = stableGesture.toUpperCase();
+            }
+        }
+
+// ------------------ RADIAL HOVER GESTURES UTILS ------------------
+        function layoutRadialMenu(menu, size) {
+            const items = menu.querySelectorAll('.radial-item');
+            const radius = size * 0.34; // Place options comfortably inside the circle
+            const center = size / 2;
+            
+            items.forEach((item, i) => {
+                const angle = (i * (2 * Math.PI) / items.length) - Math.PI / 2;
+                const x = center + Math.cos(angle) * radius;
+                const y = center + Math.sin(angle) * radius;
+                item.style.left = `${x}px`;
+                item.style.top = `${y}px`;
+            });
+        }
+
+        function updateRadialMenuPosition(menu, landmarks) {
+            const centerPt = landmarks[9]; // Middle finger MCP knuckle (center of fist)
+            
+            // Fixed area/size of the radial menu (e.g. 220px) for stability as requested
+            const radialSize = 220; 
+            
+            menu.style.width = `${radialSize}px`;
+            menu.style.height = `${radialSize}px`;
+            
+            // Map middle knuckle position dynamically to the camera video container
+            const x_px = (isMirrored ? (1.0 - centerPt.x) : centerPt.x) * canvasElement.clientWidth;
+            const y_px = centerPt.y * canvasElement.clientHeight;
+            
+            menu.style.left = `${x_px}px`;
+            menu.style.top = `${y_px}px`;
+            
+            layoutRadialMenu(menu, radialSize);
+        }
+
+        function openRadialMenu(menu, type) {
+            closeRadialMenus();
+            
+            menu.style.display = 'block';
+            
+            if (lastHandLandmarks) {
+                updateRadialMenuPosition(menu, lastHandLandmarks);
+                // Record the center of the menu when opened to compute relative movements correctly
+                radialMenuCenter = { x: lastHandLandmarks[9].x, y: lastHandLandmarks[9].y };
+            }
+            
+            if (type === 'command') {
+                isCommandMenuOpen = true;
+                selectedRadialCommand = 'none';
+            } else {
+                isToolMenuOpen = true;
+                selectedRadialTool = 'none';
+            }
+            playBeep(700, 0.08);
+        }
+
+        function closeRadialMenus() {
+            fistMenu.style.display = 'none';
+            toolMenu.style.display = 'none';
+            isCommandMenuOpen = false;
+            isToolMenuOpen = false;
+            
+            document.querySelectorAll('.radial-item').forEach(itm => itm.classList.remove('active'));
+        }
+
+        function updateRadialMenuHoverState(menu, landmarks, type) {
+            const currentCenter = landmarks[9]; // Middle finger MCP knuckle (current position of fist)
+            const radialSize = 220; // Match fixed size for layout/threshold calculations
+
+            // Compute movement delta (pixels) of the fist from its starting open position
+            let dx = (currentCenter.x - radialMenuCenter.x) * canvasElement.clientWidth;
+            // Adjust dx for horizontal mirroring if applicable
+            if (isMirrored) {
+                dx = -dx;
+            }
+            const dy = (currentCenter.y - radialMenuCenter.y) * canvasElement.clientHeight;
+            const dist = Math.hypot(dx, dy);
+
+            // Fist shift selection deadzone (increased from 9px to 25px for deliberate movement selection)
+            const selectionThreshold = 25;
+            if (dist < selectionThreshold) {
+                document.querySelectorAll('.radial-item').forEach(itm => itm.classList.remove('active'));
+                if (type === 'command') selectedRadialCommand = 'none';
+                else selectedRadialTool = 'none';
+                return;
+            }
+
+            // Calculate angle [0, 360]
+            let angle = Math.atan2(dy, dx) * 180 / Math.PI;
+            if (angle < 0) angle += 360;
+
+            const items = menu.querySelectorAll('.radial-item');
+            items.forEach(itm => itm.classList.remove('active'));
+
+            if (type === 'command') {
+                // 4 Quadrants: Up (Undo), Down (Clear), Left (Eraser), Right (Brush)
+                let selected = 'none';
+                if (angle >= 315 || angle < 45) {
+                    selected = 'brush';
+                } else if (angle >= 45 && angle < 135) {
+                    selected = 'clear';
+                } else if (angle >= 135 && angle < 225) {
+                    selected = 'eraser';
+                } else {
+                    selected = 'undo';
+                }
+                
+                selectedRadialCommand = selected;
+                const activeEl = menu.querySelector(`[data-cmd="${selected}"]`);
+                if (activeEl) activeEl.classList.add('active');
+                
+            } else {
+                // 5 sectors: Magic, Shape, Erase, Pencil, Ink
+                // Tool selection items starting at -90 degrees (top center)
+                let adjustedAngle = angle + 90;
+                if (adjustedAngle < 0) adjustedAngle += 360;
+                if (adjustedAngle >= 360) adjustedAngle -= 360;
+                
+                let sector = Math.floor(adjustedAngle / 72);
+                let selected = 'magic';
+                
+                if (sector === 0) selected = 'magic';
+                else if (sector === 1) selected = 'shapes';
+                else if (sector === 2) selected = 'eraser';
+                else if (sector === 3) selected = 'pencil';
+                else selected = 'ink';
+                
+                selectedRadialTool = selected;
+                const activeEl = menu.querySelector(`[data-tool="${selected}"]`);
+                if (activeEl) activeEl.classList.add('active');
+            }
+        }
+
+        function executeRadialAction(type) {
+            if (type === 'command') {
+                logSystem(`Executing radial command: ${selectedRadialCommand.toUpperCase()}`);
+                if (selectedRadialCommand === 'undo') {
+                    undoLastAction();
+                } else if (selectedRadialCommand === 'clear') {
+                    clearCanvas();
+                } else if (selectedRadialCommand === 'eraser') {
+                    activeMode = 'erase';
+                    document.getElementById('btn-mode-erase').classList.add('active');
+                    document.getElementById('btn-mode-draw').classList.remove('active');
+                    playBeep(900, 0.1);
+                } else if (selectedRadialCommand === 'brush') {
+                    activeMode = 'draw';
+                    document.getElementById('btn-mode-draw').classList.add('active');
+                    document.getElementById('btn-mode-erase').classList.remove('active');
+                    playBeep(900, 0.1);
+                }
+            } else {
+                logSystem(`Selected tool: ${selectedRadialTool.toUpperCase()}`);
+                if (selectedRadialTool === 'eraser') {
+                    activeMode = 'erase';
+                    document.getElementById('btn-mode-erase').classList.add('active');
+                    document.getElementById('btn-mode-draw').classList.remove('active');
+                } else {
+                    activeMode = 'draw';
+                    document.getElementById('btn-mode-draw').classList.add('active');
+                    document.getElementById('btn-mode-erase').classList.remove('active');
+                    
+                    document.getElementById('sel-brush').value = selectedRadialTool;
+                    activeBrush = selectedRadialTool;
+                    const magicThemes = ['celestial', 'plasma', 'ember', 'frost', 'sakura', 'quantum'];
+                    if (magicThemes.includes(activeBrush)) {
+                        cfgParticleTheme.value = activeBrush;
+                    } else if (activeBrush === 'magic') {
+                        cfgParticleTheme.value = 'celestial';
+                    }
+                }
+                playBeep(900, 0.1);
+            }
+            closeRadialMenus();
+            stableGesture = 'none';
+        }
+
+        function updateLabMeters(g) {
+            document.querySelectorAll('.meter-bar-fill').forEach(f => f.style.width = '0%');
+            if (g === 'pinch') document.getElementById('meter-pinch').style.width = '100%';
+            else if (g === 'thumbs_up') document.getElementById('meter-thumbs-up').style.width = '100%';
+            else if (g === 'thumbs_down') document.getElementById('meter-thumbs-down').style.width = '100%';
+            else if (g === 'palm') document.getElementById('meter-palm').style.width = '100%';
+            else if (g === 'fist') document.getElementById('meter-fist').style.width = '100%';
+            else if (g === 'two_fingers') document.getElementById('meter-two-fingers').style.width = '100%';
+        }
+
+        // ------------------ VIRTUAL DRAWING & PAINTING ------------------
+        function handleVirtualPinchDrag(x, y) {
+            const paintRect = paintCanvas.getBoundingClientRect();
+            const insideCanvasX = x;
+            const insideCanvasY = y;
+
+            if (insideCanvasX >= 0 && insideCanvasX <= paintCanvas.width &&
+                insideCanvasY >= 0 && insideCanvasY <= paintCanvas.height) {
+                
+                if (!isDrawing) {
+                    saveHistoryState();
+                    isDrawing = true;
+                    startX = insideCanvasX;
+                    startY = insideCanvasY;
+                    lastPaintX = insideCanvasX;
+                    lastPaintY = insideCanvasY;
+                    strokePoints = [];
+                    
+                    // Trigger sound & burst
+                    playBeep(880, 0.08);
+                    createParticlesBurst(insideCanvasX, insideCanvasY, 6);
+                }
+
+                // Add points trajectory
+                strokePoints.push({ x: insideCanvasX, y: insideCanvasY });
+
+                // Draw stroke
+                paintCtx.save();
+                paintCtx.lineWidth = brushSize;
+                paintCtx.strokeStyle = activeColor;
+                paintCtx.lineCap = 'round';
+                paintCtx.lineJoin = 'round';
+
+                if (activeMode === 'erase') {
+                    paintCtx.globalCompositeOperation = 'destination-out';
+                    paintCtx.lineWidth = brushSize * 18.0; 
+                    
+                    paintCtx.beginPath();
+                    paintCtx.moveTo(lastPaintX, lastPaintY);
+                    paintCtx.lineTo(insideCanvasX, insideCanvasY);
+                    paintCtx.stroke();
+                } else {
+                    paintCtx.globalCompositeOperation = 'source-over';
+                    
+                    // Apply special neon brush properties
+                    if (activeBrush === 'neon') {
+                        paintCtx.shadowBlur = 10;
+                        paintCtx.shadowColor = activeColor;
+                    }
+                    
+                    paintCtx.beginPath();
+                    paintCtx.moveTo(lastPaintX, lastPaintY);
+                    paintCtx.lineTo(insideCanvasX, insideCanvasY);
+                    paintCtx.stroke();
+                }
+                paintCtx.restore();
+
+                // Save coordinate points to replay recorder
+                recordedStrokes.push({
+                    x: insideCanvasX,
+                    y: insideCanvasY,
+                    color: activeColor,
+                    size: brushSize,
+                    isStart: (strokePoints.length === 1)
+                });
+                
+                // Generate magic particles!
+                createParticlesBurst(insideCanvasX, insideCanvasY, 2);
+
+                lastPaintX = insideCanvasX;
+                lastPaintY = insideCanvasY;
+
+            } else {
+                if (isDrawing) {
+                    isDrawing = false;
+                    handleStrokeFinishEvent();
+                }
+            }
+        }
+
+        function handleStrokeFinishEvent() {
+            // Check shape assist geometry heuristics
+            const activeSelBrush = document.getElementById('sel-brush').value;
+            if (activeSelBrush === 'shapes' && strokePoints.length > 10) {
+                pendingShape = recognizeShapeHeuristics(strokePoints);
+                if (pendingShape) {
+                    // Display CAD Shape HUD
+                    document.getElementById('shape-assist-hud').style.display = 'flex';
+                    document.getElementById('shape-assist-text').innerHTML = `🔹 Corrected: ${pendingShape.type} (${pendingShape.confidence}% Match)`;
+                    
+                    // Draw shape assist preview lines
+                    paintCtx.save();
+                    paintCtx.strokeStyle = 'var(--secondary)';
+                    paintCtx.lineWidth = brushSize;
+                    paintCtx.setLineDash([6, 4]);
+                    
+                    drawTargetShape(paintCtx, pendingShape);
+                    paintCtx.restore();
+                    
+                    logSystem(`Smart Assist: Proposed ${pendingShape.type} correction`);
+                    playBeep(700, 0.1, 'sine');
+                }
+            }
+            strokePoints = [];
+        }
+
+        function triggerVirtualCanvasCapture() {
+            playCameraSound();
+            logSystem("📸 Capturing Canvas snapshot...");
+
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = 300;
+            tempCanvas.height = 200;
+            const ctx = tempCanvas.getContext('2d');
+
+            // Draw clean dark background
+            ctx.fillStyle = '#09090b';
+            ctx.fillRect(0, 0, 300, 200);
+
+            // Draw border glowing ring
+            ctx.strokeStyle = '#8b5cf6';
+            ctx.lineWidth = 4;
+            ctx.strokeRect(0, 0, 300, 200);
+
+            // Render drawing canvas
+            ctx.drawImage(paintCanvas, 10, 10, 280, 180);
+
+            const dataURL = tempCanvas.toDataURL();
+
+            noCapturesText.style.display = 'none';
+
+            const img = document.createElement('img');
+            img.src = dataURL;
+            img.className = 'gallery-thumbnail';
+            img.title = "Click to download snapshot";
+            img.addEventListener('click', () => {
+                const link = document.createElement('a');
+                link.download = `aura_capture_${Math.floor(Date.now()/1000)}.png`;
+                link.href = dataURL;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            });
+            
+            galleryList.insertBefore(img, galleryList.firstChild);
+        }
+
+        // ------------------ MAIN RENDER TICK ENGINE ------------------
+        function mainRenderLoop() {
+            // Draw magic particles over drawing canvas
+            // To do this clean, we clear paintCanvas only of drawing layer?
+            // Actually, AURA separates logics. The particle layer can just draw over the canvas!
+            // Wait, if the particles are drawn directly on paintCanvas, they will smear and stay!
+            // To prevent smearing: on every frame, we clear the canvas visual particles?
+            // Ah! The logic drawing itself is persistent. Drawing particles directly on the paintCanvas
+            // would smudge and leave trails. To solve this:
+            // We can draw particles directly on paintCtx with destination-over, or
+            // simply let them draw and fade out. But since the canvas is NOT cleared, particles would stack up!
+            // Yes! To avoid stacking up particles, we must redraw the persistent canvas drawing strokes,
+            // or simply draw particles on a second overlay transparent canvas situated on top of the drawing canvas!
+            // That is the standard double-buffered overlays method! It is extremely clean and guarantees
+            // that the persistent drawing canvas remains 100% clean and pristine, while the floating particles,
+            // cursors, and radial menu previews render at 60fps on the transparent overlay!
+            // Let's check: do we have an overlay?
+            // Wait, we can just overlay the particles visual on the paint canvas?
+            // Yes! But instead of a separate canvas element, we can clear the paintCanvas and redraw history?
+            // No, that is slow. An overlay canvas is perfect and takes 2 lines of CSS!
+            // Let's see: we can overlay a transparent canvas `#particle-canvas` exactly over `#paint-canvas`!
+            // Let's check if we can do it. Yes, we can just render the particles on a separate transparent layer!
+            // But wait, the current HTML only has `#paint-canvas`. Can we draw the particles and fade them
+            // using a semi-transparent clear rect on a temporary buffer?
+            // Yes, if we don't have an overlay canvas, we can draw them and then let them decay. But since the background
+            // is not cleared, they stay.
+            // Let's implement the overlay canvas or let's double buffer using CSS!
+            // Actually, we can dynamically insert the particle overlay canvas on load, or we can just draw the particles
+            // and clear them by redrawing the drawings. But wait, we can also just create the particle canvas overlay:
+            // In CSS, position both canvases absolute inside `#canvas-wrapper`!
+            // Let's check:
+            // ```css
+            // #paint-canvas {
+            //    position: absolute;
+            //    top: 0; left: 0;
+            //    z-index: 1;
+            // }
+            // #particle-canvas {
+            //    position: absolute;
+            //    top: 0; left: 0;
+            //    z-index: 2;
+            //    pointer-events: none;
+            // }
+            // ```
+            // This is **incredibly clean** and guarantees that:
+            // 1. The persistent drawing canvas remains 100% clean and untouched.
+            // 2. The particle trails, cursors, and selections render at 60fps on the transparent `#particle-canvas`.
+            // Let's add this! Let's write the CSS and HTML support for `#particle-canvas` overlay dynamically!
+            
+            // For now, let's create the `#particle-canvas` dynamically on load:
+            const particleCanvas = document.createElement('canvas');
+            particleCanvas.id = 'particle-canvas';
+            particleCanvas.style.position = 'absolute';
+            particleCanvas.style.top = '0';
+            particleCanvas.style.left = '0';
+            particleCanvas.style.width = '100%';
+            particleCanvas.style.height = '100%';
+            particleCanvas.style.pointerEvents = 'none';
+            particleCanvas.style.zIndex = '5';
+            
+            // Set paint canvas to absolute too
+            paintCanvas.style.position = 'absolute';
+            paintCanvas.style.top = '0';
+            paintCanvas.style.left = '0';
+            paintCanvas.style.width = '100%';
+            paintCanvas.style.height = '100%';
+            paintCanvas.style.zIndex = '1';
+            
+            paintCanvas.parentNode.appendChild(particleCanvas);
+            const pCtx = particleCanvas.getContext('2d');
+
+            function resizeParticleCanvas() {
+                particleCanvas.width = particleCanvas.offsetWidth;
+                particleCanvas.height = particleCanvas.offsetHeight;
+            }
+            window.addEventListener('resize', resizeParticleCanvas);
+            resizeParticleCanvas();
+
+            // RENDER LOOP TICK
+            let prevSmoothX = 0;
+            let prevSmoothY = 0;
+            function tick() {
+                pCtx.clearRect(0, 0, particleCanvas.width, particleCanvas.height);
+                
+                // Update and draw active particles
+                let activeCount = 0;
+                for (let i = 0; i < particles.length; i++) {
+                    const p = particles[i];
+                    if (p.active) {
+                        p.update(16);
+                        if (p.active) {
+                            p.draw(pCtx);
+                            activeCount++;
+                        }
+                    }
+                }
+                const metricParticles = document.getElementById('metric-particles');
+                if (metricParticles) {
+                    metricParticles.innerHTML = activeCount;
+                }
+                
+                // Draw virtual cursor trace indicator on particle canvas with advanced states
+                if (isHandDetected) {
+                    pCtx.save();
+                    
+                    let cursorState = 'IDLE';
+                    const dx = smoothX - prevSmoothX;
+                    const dy = smoothY - prevSmoothY;
+                    const velocity = Math.hypot(dx, dy);
+                    prevSmoothX = smoothX;
+                    prevSmoothY = smoothY;
+
+                    if (stableGesture === 'palm') {
+                        cursorState = 'PAUSED';
+                    } else if (isCommandMenuOpen || isToolMenuOpen) {
+                        cursorState = 'COMMAND';
+                    } else if (isDrawing) {
+                        cursorState = 'DRAWING';
+                    } else if (velocity > 15) {
+                        cursorState = 'FAST MOVEMENT';
+                    } else if (velocity > 0.8) {
+                        cursorState = 'MOVING';
+                    } else {
+                        cursorState = 'IDLE';
+                    }
+
+                    // Update HUD cursor state telemetry value
+                    const hudCursorState = document.getElementById('metric-track');
+                    if (hudCursorState) {
+                        hudCursorState.innerHTML = cursorState;
+                    }
+
+                    if (cursorState === 'PAUSED') {
+                        pCtx.fillStyle = 'rgba(156, 163, 175, 0.5)';
+                        pCtx.beginPath();
+                        pCtx.arc(smoothX, smoothY, 4, 0, Math.PI * 2);
+                        pCtx.fill();
+                    } else if (cursorState === 'COMMAND') {
+                        pCtx.strokeStyle = 'var(--secondary)';
+                        pCtx.lineWidth = 2;
+                        pCtx.beginPath();
+                        pCtx.arc(smoothX, smoothY, 8, 0, Math.PI * 2);
+                        pCtx.stroke();
+                        pCtx.beginPath();
+                        pCtx.moveTo(smoothX - 12, smoothY);
+                        pCtx.lineTo(smoothX + 12, smoothY);
+                        pCtx.moveTo(smoothX, smoothY - 12);
+                        pCtx.lineTo(smoothX, smoothY + 12);
+                        pCtx.stroke();
+                    } else if (cursorState === 'DRAWING') {
+                        const pulse = 10 + Math.sin(Date.now() / 100) * 3;
+                        pCtx.shadowBlur = pulse;
+                        pCtx.shadowColor = 'var(--accent)';
+                        pCtx.fillStyle = '#ffffff';
+                        pCtx.beginPath();
+                        pCtx.arc(smoothX, smoothY, 5, 0, Math.PI * 2);
+                        pCtx.fill();
+                        pCtx.strokeStyle = 'var(--accent)';
+                        pCtx.lineWidth = 2;
+                        pCtx.beginPath();
+                        pCtx.arc(smoothX, smoothY, pulse, 0, Math.PI * 2);
+                        pCtx.stroke();
+                    } else if (cursorState === 'FAST MOVEMENT') {
+                        pCtx.shadowBlur = 15;
+                        pCtx.shadowColor = 'var(--secondary)';
+                        pCtx.fillStyle = '#ffffff';
+                        pCtx.beginPath();
+                        pCtx.arc(smoothX, smoothY, 6, 0, Math.PI * 2);
+                        pCtx.fill();
+                        pCtx.fillStyle = 'var(--secondary)';
+                        pCtx.font = '14px serif';
+                        pCtx.fillText('✨', smoothX - dx * 0.8, smoothY - dy * 0.8);
+                    } else {
+                        const time = Date.now() * 0.003;
+                        pCtx.shadowBlur = 12;
+                        pCtx.shadowColor = 'var(--primary)';
+                        
+                        pCtx.fillStyle = '#ffffff';
+                        pCtx.beginPath();
+                        pCtx.arc(smoothX, smoothY, 4, 0, Math.PI * 2);
+                        pCtx.fill();
+                        
+                        pCtx.fillStyle = 'var(--accent)';
+                        pCtx.font = '12px serif';
+                        const offset1X = Math.cos(time) * 12;
+                        const offset1Y = Math.sin(time) * 12;
+                        const offset2X = Math.cos(time + Math.PI) * 14;
+                        const offset2Y = Math.sin(time + Math.PI) * 14;
+                        pCtx.fillText('✦', smoothX + offset1X, smoothY + offset1Y);
+                        pCtx.fillText('✧', smoothX + offset2X, smoothY + offset2Y);
+                        pCtx.fillText('✨', smoothX - offset1X * 0.5, smoothY - offset1Y * 0.5);
+                    }
+                    
+                    pCtx.restore();
+                }
+                
+                requestAnimationFrame(tick);
+            }
+            requestAnimationFrame(tick);
+        }
+        window.addEventListener('load', () => {
+            setTimeout(mainRenderLoop, 300);
+        });
+
+        // Initialize MediaPipe Hands Object
+        const hands = new Hands({locateFile: (file) => {
+            return `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`;
+        }});
+
+        let frameStartTimestamp = 0;
+        hands.setOptions({
+            maxNumHands: 2,
+            modelComplexity: 1,
+            minDetectionConfidence: 0.70,
+            minTrackingConfidence: 0.70
+        });
+        hands.onResults(onResults);
+
+        const camera = new Camera(videoElement, {
+            onFrame: async () => {
+                frameStartTimestamp = performance.now();
+                await hands.send({image: videoElement});
+            },
+            width: 640,
+            height: 480
+        });
+
+        navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480 } })
+            .then(stream => {
+                videoElement.srcObject = stream;
+                videoElement.play();
+                camera.start();
+                logSystem("Webcam tracking initialized successfully");
+            })
+            .catch(err => {
+                console.error("Camera access error:", err);
+                camHudStatus.innerHTML = "ERROR: ACCESS BLOCKED";
+                camHudStatus.style.color = "var(--danger)";
+                logSystem("Camera permission blocked.");
+            });
+
+        // Run initial update Calibration once loaded
+        setTimeout(updateCalibrationSettings, 200);
+    </script>
+</body>
+</html>
