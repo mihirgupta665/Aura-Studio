@@ -1,0 +1,471 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>AURA Spatial Drawing Studio</title>
+    <style>/* CSS_PLACEHOLDER */</style>
+
+    <!-- Load MediaPipe Libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+</head>
+<body>
+
+    <!-- Fixed Navbar -->
+    <div class="navbar">
+        <div class="navbar-brand">
+            <div class="pulse-light" id="sys-pulse"></div>
+            <div class="navbar-logo">✨ AURA STUDIO</div>
+        </div>
+        <div class="navbar-links">
+            <div class="nav-tab active" data-tab="studio">🎨 Canvas Studio</div>
+            <div class="nav-tab" data-tab="lab">🖐️ Gesture Lab</div>
+            <div class="nav-tab" data-tab="engine">✨ Magic Engine</div>
+            <div class="nav-tab" data-tab="replay">🎬 Replay</div>
+            <div class="nav-tab" data-tab="analytics">📊 Analytics</div>
+            <div class="nav-tab" data-tab="calibration">⚙️ Calibration</div>
+        </div>
+    </div>
+
+    <!-- ONBOARDING OVERLAY -->
+    <div id="onboarding-overlay" class="overlay-wrapper">
+        <div class="glass-card onboarding-card">
+            <h2 class="neon-text">✨ WELCOME TO AURA</h2>
+            <p style="text-align:center; font-size:12px; color:var(--text-secondary); margin:0;">Turn your hands into a magical creative interface. Below is your spatial control cheatsheet:</p>
+            <div class="onboarding-grid">
+                <div class="onboarding-item"><span>☝️</span><div><strong>Move:</strong> Hover index fingertip to move the magical cursor</div></div>
+                <div class="onboarding-item"><span>🤏</span><div><strong>Pinch to Draw:</strong> Pinch index & thumb to sketch strokes</div></div>
+                <div class="onboarding-item"><span>👍</span><div><strong>Confirm:</strong> Thumbs Up to confirm tool selections or CAD shapes</div></div>
+                <div class="onboarding-item"><span>👎</span><div><strong>Undo:</strong> Thumbs Down to undo last stroke/shape</div></div>
+                <div class="onboarding-item"><span>🖐️</span><div><strong>Pause:</strong> Open palm to temporarily pause drawing tracking</div></div>
+                <div class="onboarding-item"><span>✊</span><div><strong>Command Mode:</strong> Fist opens radial action selector</div></div>
+                <div class="onboarding-item"><span>✌️</span><div><strong>Tool Selector:</strong> Two fingers extended opens brush menu</div></div>
+                <div class="onboarding-item"><span>🖱️</span><div><strong>Mouse Fallback:</strong> Full interface is control-clickable too</div></div>
+            </div>
+            <button class="action-btn" id="btn-close-onboarding">Start Creating</button>
+        </div>
+    </div>
+
+    <!-- Main Content Container -->
+    <div id="main-container">
+        
+
+
+        <!-- SMART SHAPE ASSIST PROMPT HUD -->
+        <div id="shape-assist-hud">
+            <span id="shape-assist-text">Circle detected (94%)</span>
+            <button class="tool-btn active" id="btn-shape-ok" style="padding: 2px 6px;">👍 Confirm</button>
+            <button class="tool-btn" id="btn-shape-cancel" style="padding: 2px 6px; background: rgba(239,68,68,0.1); border-color: rgba(239,68,68,0.3); color: #fca5a5;">👎 Reject</button>
+        </div>
+
+        <!-- VIRTUAL CURSOR GLOW -->
+        <div id="magic-cursor-glow"></div>
+
+        <!-- FIST COUNTDOWN SCREENSHOT OVERLAY -->
+        <div id="fist-countdown">
+            <div class="ring-spin"></div>
+            <div style="font-family: 'Outfit', sans-serif; font-size: 14px; font-weight: 700; margin-top: 15px; color:#fff;" id="countdown-label">TAKING CAPTURE IN 100%</div>
+        </div>
+
+        <!-- ------------------ TAB 1: CANVAS STUDIO ------------------ -->
+        <div class="tab-content active" id="tab-content-studio">
+            <div id="studio-split">
+                <!-- Left: Video feed -->
+                <div id="camera-wrapper">
+                    <div class="hud-indicator" id="cam-hud-status">SEARCHING FOR HAND...</div>
+                    <video id="input-video" playsinline></video>
+                    <canvas id="webcam-canvas"></canvas>
+                    
+                    <!-- RADIAL COMMAND MENU (✊ Fist) -->
+                    <div class="radial-overlay" id="fist-menu-overlay">
+                        <div class="radial-item" data-cmd="undo">↩️ Undo</div>
+                        <div class="radial-item" data-cmd="brush">🖌️ Brush</div>
+                        <div class="radial-item" data-cmd="clear">🗑️ Clear</div>
+                        <div class="radial-item" data-cmd="eraser">🧽 Eraser</div>
+                    </div>
+
+                    <!-- RADIAL TOOL SELECTION MENU (✌️ Two Fingers) -->
+                    <div class="radial-overlay" id="tool-menu-overlay">
+                        <div class="radial-item" data-tool="magic">✨ Magic</div>
+                        <div class="radial-item" data-tool="shapes">🔷 Shape</div>
+                        <div class="radial-item" data-tool="eraser">🧽 Erase</div>
+                        <div class="radial-item" data-tool="pencil">✏️ Pencil</div>
+                        <div class="radial-item" data-tool="ink">🖌️ Ink</div>
+                    </div>
+                    
+                    <!-- Guided Auto-Calibration Screen -->
+                    <div id="auto-cal-overlay" style="display:none;">
+                        <div class="auto-cal-card">
+                            <h4 id="auto-cal-title">STAGE 1: OPEN PALM</h4>
+                            <p id="auto-cal-instructions">Show your open hand clearly in front of the camera.</p>
+                            <div class="auto-cal-progress-bar"><div id="auto-cal-progress-fill"></div></div>
+                            <div style="display:flex; justify-content:space-between; margin-top:10px;">
+                                <button class="tool-btn" id="btn-skip-cal" style="font-size:9px;">Cancel</button>
+                                <span id="auto-cal-status" style="font-size:9px; color:var(--secondary); font-family:monospace;">Waiting...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Right: Paint canvas -->
+                <div id="canvas-wrapper">
+                    <canvas id="paint-canvas"></canvas>
+                    
+                    <!-- Tracking Paused Screen -->
+                    <div id="tracking-paused-overlay" style="display:none;">
+                        <div class="paused-card">
+                            <h3>🖐️ TRACKING PAUSED</h3>
+                            <p>Show normal hand posture or pinch to resume sketchpad.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="canvas-hud">
+                        <div style="display:flex; gap:15px;">
+                            <span id="hud-coordinates">Cursor: (0, 0)</span>
+                            <span id="hud-fps">FPS: 60</span>
+                            <span id="hud-particles-count" style="margin-left:10px;">Particles: 0</span>
+                        </div>
+                        <span id="hud-log">System initialized. Ready to draw.</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Collapsible Developer Performance Panel -->
+            <div class="collapsible-hud-card">
+                <div class="hud-toggle-btn" id="btn-toggle-hud">
+                    <span>▶</span> <strong>DEVELOPER PERFORMANCE HUD</strong>
+                </div>
+                <div class="hud-collapsible-content" id="hud-perf-content">
+                    <div class="hud-metric-box">
+                        <div class="hud-metric-title">FPS</div>
+                        <div class="hud-metric-val" id="metric-fps">60</div>
+                    </div>
+                    <div class="hud-metric-box">
+                        <div class="hud-metric-title">Tracking Confidence</div>
+                        <div class="hud-metric-val" id="metric-track">98%</div>
+                    </div>
+                    <div class="hud-metric-box">
+                        <div class="hud-metric-title">Detection Confidence</div>
+                        <div class="hud-metric-val" id="metric-detect">99%</div>
+                    </div>
+                    <div class="hud-metric-box">
+                        <div class="hud-metric-title">Render Latency</div>
+                        <div class="hud-metric-val" id="metric-latency">14ms</div>
+                    </div>
+                    <div class="hud-metric-box">
+                        <div class="hud-metric-title">Hands Tracked</div>
+                        <div class="hud-metric-val" id="metric-hands">1</div>
+                    </div>
+                    <div class="hud-metric-box">
+                        <div class="hud-metric-title">Active Landmarks</div>
+                        <div class="hud-metric-val">21</div>
+                    </div>
+                    <div class="hud-metric-box">
+                        <div class="hud-metric-title">Active Particles</div>
+                        <div class="hud-metric-val" id="metric-particles">0 / 300</div>
+                    </div>
+                    <div class="hud-metric-box">
+                        <div class="hud-metric-title">Render Frame Time</div>
+                        <div class="hud-metric-val" id="metric-frame-time">4ms</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Toolbar controls row -->
+            <div id="toolbar-row">
+                <div class="toolbar-group">
+                    <div class="color-dot active" style="background:#8b5cf6;" data-color="#8b5cf6"></div>
+                    <div class="color-dot" style="background:#06b6d4;" data-color="#06b6d4"></div>
+                    <div class="color-dot" style="background:#ec4899;" data-color="#ec4899"></div>
+                    <div class="color-dot" style="background:#10b981;" data-color="#10b981"></div>
+                    <div class="color-dot" style="background:#f59e0b;" data-color="#f59e0b"></div>
+                    <div class="color-dot" style="background:#ffffff;" data-color="#ffffff"></div>
+                    
+                    <div class="color-picker-wrapper">
+                        <input type="color" id="custom-color" value="#8b5cf6" style="border:none; background:transparent; width:18px; height:18px; cursor:pointer; padding:0;">
+                    </div>
+                </div>
+
+                <div class="toolbar-group">
+                    <button class="tool-btn active" id="btn-mode-draw">✏️ Draw</button>
+                    <button class="tool-btn" id="btn-mode-erase">🧽 Erase</button>
+                    
+                    <span style="font-size:10px; color:var(--text-muted); margin-left:5px;">Size:</span>
+                    <div class="size-dot active" data-size="3"></div>
+                    <div class="size-dot" data-size="8" style="transform:scale(1.2);"></div>
+                    <div class="size-dot" data-size="16" style="transform:scale(1.4);"></div>
+                    <div class="size-dot" data-size="28" style="transform:scale(1.6);"></div>
+                </div>
+
+                <div class="toolbar-group">
+                    <select id="sel-brush" class="select-input">
+                        <option value="pencil">✏️ Pencil</option>
+                        <option value="ink">🖌️ Ink</option>
+                        <option value="neon">⚡ Neon</option>
+                        <option value="magic">✨ Celestial</option>
+                        <option value="plasma">🧬 Plasma</option>
+                        <option value="ember">🔥 Ember</option>
+                        <option value="frost">❄️ Frost</option>
+                        <option value="sakura">🌸 Sakura</option>
+                        <option value="quantum">🧬 Quantum</option>
+                    </select>
+
+                    <select id="sel-bg-style" class="select-input">
+                        <option value="solid">🌌 Plain Dark</option>
+                        <option value="grid">🌐 Tech Grid</option>
+                        <option value="blueprint">📐 Blueprint Grid</option>
+                    </select>
+
+                    <button class="tool-btn active" id="btn-mirror" title="Toggle horizontal mirror layout">🔁 Mirror</button>
+                </div>
+
+                <div class="toolbar-group" style="margin-left: auto;">
+                    <button class="tool-btn" id="btn-undo-action">↩️ Undo</button>
+                    <button class="tool-btn" id="btn-clear-canvas" style="background:rgba(239,68,68,0.12); border-color:rgba(239,68,68,0.2); color:#fca5a5;">🗑️ Clear</button>
+                    <button class="tool-btn" id="btn-save-canvas" style="background:rgba(16,185,129,0.12); border-color:rgba(16,185,129,0.2); color:#a7f3d0;">💾 Save</button>
+                </div>
+            </div>
+
+            <!-- Gallery screenshots row -->
+            <div id="gallery-row">
+                <div class="gallery-title" style="font-family:'Outfit', sans-serif; font-size:10px; font-weight:700; color:var(--text-muted); text-transform:uppercase; writing-mode:vertical-lr; transform:rotate(180deg); padding-right:5px;">Gallery</div>
+                <div style="display:flex; gap:10px; flex:1;" id="gallery-list">
+                    <span id="no-captures" style="font-size:10px; color:var(--text-muted); align-self:center;">No snapshots yet. Hold closed fist (✊) for 1.5s to snap canvas screenshot.</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- ------------------ TAB 2: GESTURE LAB ------------------ -->
+        <div class="tab-content" id="tab-content-lab">
+            <div id="lab-grid">
+                <div class="glass-card" style="display:flex; flex-direction:column; gap:15px;">
+                    <h3 style="margin-top:0; font-family:'Outfit',sans-serif; color:var(--primary);">🖐️ Gestural Classifications</h3>
+                    <p style="font-size:12px; color:var(--text-secondary); margin:0 0 10px 0;">This panel displays classification telemetry and stability queues inside JavaScript's recognizer loop.</p>
+                    
+                    <div class="gesture-card">
+                        <div class="gesture-status-indicator">🤏 Pinch-to-Sketch</div>
+                        <div class="meter-bar-bg"><div class="meter-bar-fill" id="meter-pinch"></div></div>
+                    </div>
+                    <div class="gesture-card">
+                        <div class="gesture-status-indicator">👍 Thumbs Up (Confirm)</div>
+                        <div class="meter-bar-bg"><div class="meter-bar-fill" id="meter-thumbs-up"></div></div>
+                    </div>
+                    <div class="gesture-card">
+                        <div class="gesture-status-indicator">👎 Thumbs Down (Undo)</div>
+                        <div class="meter-bar-bg"><div class="meter-bar-fill" id="meter-thumbs-down"></div></div>
+                    </div>
+                    <div class="gesture-card">
+                        <div class="gesture-status-indicator">🖐️ Open Palm (Pause)</div>
+                        <div class="meter-bar-bg"><div class="meter-bar-fill" id="meter-palm"></div></div>
+                    </div>
+                    <div class="gesture-card">
+                        <div class="gesture-status-indicator">✊ Closed Fist (Command)</div>
+                        <div class="meter-bar-bg"><div class="meter-bar-fill" id="meter-fist"></div></div>
+                    </div>
+                    <div class="gesture-card">
+                        <div class="gesture-status-indicator">✌️ Two-Finger (Tools)</div>
+                        <div class="meter-bar-bg"><div class="meter-bar-fill" id="meter-two-fingers"></div></div>
+                    </div>
+                </div>
+
+                <div class="glass-card" style="display:flex; flex-direction:column; gap:10px;">
+                    <h3 style="margin-top:0; font-family:'Outfit',sans-serif; color:var(--secondary);">🔍 Recognition State Telemetry</h3>
+                    <div style="font-family:monospace; font-size:11px; background:rgba(0,0,0,0.3); border-radius:6px; padding:15px; flex:1; overflow-y:auto; line-height:1.6;" id="gesture-logs">
+                        [SYSTEM] Logger active. Waiting for hand data...
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ------------------ TAB 3: MAGIC ENGINE ------------------ -->
+        <div class="tab-content" id="tab-content-engine">
+            <div id="magic-grid">
+                <div class="glass-card" style="display:flex; flex-direction:column; gap:15px;">
+                    <h3 style="margin-top:0; font-family:'Outfit',sans-serif; color:var(--accent);">💫 Particle Engine Configurator</h3>
+                    <p style="font-size:12px; color:var(--text-secondary); margin:0 0 10px 0;">Configure parameters of client-side canvas rendering loops dynamically.</p>
+                    
+                    <div class="slider-wrapper">
+                        <div class="slider-label-row"><span>Max Particles Budget</span><span id="val-max-particles" class="val">300</span></div>
+                        <input type="range" id="cfg-max-particles" class="range-slider" min="50" max="600" step="25" value="300">
+                    </div>
+
+                    <div class="slider-wrapper">
+                        <div class="slider-label-row"><span>Velocity Coefficient</span><span id="val-particle-speed" class="val">1.20</span></div>
+                        <input type="range" id="cfg-particle-speed" class="range-slider" min="0.2" max="3.0" step="0.1" value="1.2">
+                    </div>
+
+                    <div class="slider-wrapper">
+                        <div class="slider-label-row"><span>Particle Lifetimes (ms)</span><span id="val-particle-life" class="val">1200</span></div>
+                        <input type="range" id="cfg-particle-life" class="range-slider" min="300" max="3000" step="100" value="1200">
+                    </div>
+
+                    <div class="slider-wrapper">
+                        <div class="slider-label-row"><span>Trail Length Coefficient</span><span id="val-trail-length" class="val">1.50</span></div>
+                        <input type="range" id="cfg-trail-length" class="range-slider" min="0.5" max="4.0" step="0.1" value="1.5">
+                    </div>
+                    
+                    <div style="margin-top:10px;">
+                        <span style="font-size:10px; color:var(--text-muted); display:block; margin-bottom:5px;">Select Visual Particle Theme:</span>
+                        <select id="cfg-particle-theme" class="select-input" style="width:100%; font-size:12px; padding:6px 12px;">
+                            <option value="celestial">🌌 Celestial (Stars & Violet Glow)</option>
+                            <option value="plasma">🧬 Plasma (Cyan Electric Sparks)</option>
+                            <option value="ember">🔥 Ember (Glowing Rising Sparks)</option>
+                            <option value="frost">❄️ Frost (Soft Ice Crystals)</option>
+                            <option value="sakura">🌸 Sakura (Soft Pink Petals)</option>
+                            <option value="quantum">🧬 Quantum (Emerald Jitter Sparks)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="glass-card" style="display:flex; flex-direction:column; position:relative;">
+                    <h3 style="margin-top:0; font-family:'Outfit',sans-serif; color:var(--text-primary);">🎨 Particle Sandbox Preview</h3>
+                    <div style="flex:1; width:100%; background:#020617; border-radius:8px; border:1px dashed var(--border-color); overflow:hidden; position:relative;" id="sandbox-wrapper">
+                        <canvas id="sandbox-canvas" style="width:100%; height:100%;"></canvas>
+                        <div style="position:absolute; bottom:10px; left:10px; font-size:9px; color:var(--text-muted); font-family:monospace;">Hover mouse inside sandbox to generate particles</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ------------------ TAB 4: REPLAY ------------------ -->
+        <div class="tab-content" id="tab-content-replay">
+            <div class="glass-card" style="flex:1; display:flex; flex-direction:column; gap:15px;">
+                <h3 style="margin-top:0; font-family:'Outfit',sans-serif; color:var(--primary);">🎬 Procedural Artwork Redraw Player</h3>
+                <p style="font-size:12px; color:var(--text-secondary); margin:0;">Replay your committed stroke sequences. Particles are generated dynamically matching the timestamps recorded.</p>
+                
+                <div style="display:flex; gap:10px; align-items:center;">
+                    <button class="tool-btn active" id="btn-replay-play">▶️ Start Replay</button>
+                    <button class="tool-btn" id="btn-replay-pause">⏸️ Pause</button>
+                    <button class="tool-btn" id="btn-replay-reset" style="background:rgba(255,255,255,0.02); border-color:var(--border-color);">🔄 Reset Player</button>
+                    <span id="replay-hud-status" style="font-family:monospace; font-size:11px; color:var(--secondary); margin-left:10px;">Player idle. Recorded Strokes: 0</span>
+                </div>
+
+                <div style="flex:1; width:100%; background:#020617; border-radius:8px; border:1px solid var(--border-color); position:relative; overflow:hidden;" id="replay-canvas-wrapper">
+                    <canvas id="replay-canvas" style="width:100%; height:100%; background:transparent;"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- ------------------ TAB 5: ANALYTICS ------------------ -->
+        <div class="tab-content" id="tab-content-analytics">
+            <div id="analytics-grid">
+                <div class="glass-card stat-card">
+                    <div style="font-size:11px; text-transform:uppercase; color:var(--text-muted); font-family:'Outfit';">Elapsed Active Time</div>
+                    <div class="stat-val" id="stat-time">00:00</div>
+                </div>
+                <div class="glass-card stat-card">
+                    <div style="font-size:11px; text-transform:uppercase; color:var(--text-muted); font-family:'Outfit';">Committed Strokes</div>
+                    <div class="stat-val" id="stat-strokes">0</div>
+                </div>
+                <div class="glass-card stat-card">
+                    <div style="font-size:11px; text-transform:uppercase; color:var(--text-muted); font-family:'Outfit';">Classified Gestures</div>
+                    <div class="stat-val" id="stat-gestures">0</div>
+                </div>
+                <div class="glass-card stat-card">
+                    <div style="font-size:11px; text-transform:uppercase; color:var(--text-muted); font-family:'Outfit';">Cursor Pixels Traveled</div>
+                    <div class="stat-val" id="stat-pixels">0 px</div>
+                </div>
+            </div>
+            
+            <div class="glass-card" style="flex:1; display:flex; flex-direction:column; gap:10px;">
+                <h3 style="margin-top:0; font-family:'Outfit',sans-serif; color:var(--secondary);">📊 Smart Session Performance</h3>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px; flex:1;">
+                    <div style="background:rgba(0,0,0,0.15); border-radius:8px; border:1px solid var(--border-color); padding:15px; display:flex; flex-direction:column; justify-content:center; gap:12px;">
+                        <div style="font-size:11px; color:var(--text-secondary); display:flex; justify-content:space-between;"><span>Average Pipeline FPS</span><span style="font-family:monospace; color:var(--success); font-weight:700;">60.0 FPS</span></div>
+                        <div class="meter-bar-bg" style="width:100%; height:8px;"><div class="meter-bar-fill" style="width:100%; background:var(--success);"></div></div>
+
+                        <div style="font-size:11px; color:var(--text-secondary); display:flex; justify-content:space-between;"><span>Hand Landmark Tracking Accuracy</span><span style="font-family:monospace; color:var(--secondary); font-weight:700;">99.2%</span></div>
+                        <div class="meter-bar-bg" style="width:100%; height:8px;"><div class="meter-bar-fill" style="width:99%; background:var(--secondary);"></div></div>
+
+                        <div style="font-size:11px; color:var(--text-secondary); display:flex; justify-content:space-between;"><span>WASM Render Latency</span><span style="font-family:monospace; color:#a78bfa; font-weight:700;">14.5 ms</span></div>
+                        <div class="meter-bar-bg" style="width:100%; height:8px;"><div class="meter-bar-fill" style="width:15%; background:#a78bfa;"></div></div>
+                    </div>
+                    
+                    <div style="background:rgba(0,0,0,0.15); border-radius:8px; border:1px solid var(--border-color); padding:15px; display:flex; flex-direction:column; justify-content:center; gap:8px; font-family:monospace; font-size:11px; color:var(--text-secondary); line-height:1.6;">
+                        <span style="color:var(--primary); font-weight:700; font-family:'Outfit';">SESSION DIAGNOSTIC ANALYTICS</span>
+                        <span>[INFO] WebAssembly models successfully loaded.</span>
+                        <span>[INFO] Object pool rendering active.</span>
+                        <span>[INFO] Temporary particle buffers cleared: 0 leaks.</span>
+                        <span>[INFO] Drawing coordinates bounds normalized successfully.</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ------------------ TAB 6: CALIBRATION ------------------ -->
+        <div class="tab-content" id="tab-content-calibration">
+            <div style="display:grid; grid-template-columns:1.5fr 1fr; gap:20px; flex:1;">
+                <div class="glass-card" style="display:flex; flex-direction:column; gap:15px;">
+                    <h3 style="margin-top:0; font-family:'Outfit',sans-serif; color:var(--primary); display:flex; justify-content:space-between; align-items:center;">
+                        <span>⚙️ Calibration Dashboard</span>
+                        <button class="tool-btn active" id="btn-toggle-auto-cal" style="font-size:11px; padding:4px 10px;">🌟 Guided Auto-Calibration</button>
+                    </h3>
+                    <p style="font-size:12px; color:var(--text-secondary); margin:0 0 10px 0;">Manually adjust boundary scales, click sensitivities, and smoothing multipliers inside WASM loops.</p>
+                    
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px;">
+                        <div class="slider-wrapper">
+                            <div class="slider-label-row"><span>Min Detection Confidence</span><span id="lbl-cfg-detect" class="val">0.70</span></div>
+                            <input type="range" id="cfg-detect" class="range-slider" min="0.4" max="0.95" step="0.05" value="0.70">
+                        </div>
+                        <div class="slider-wrapper">
+                            <div class="slider-label-row"><span>Min Tracking Confidence</span><span id="lbl-cfg-track" class="val">0.70</span></div>
+                            <input type="range" id="cfg-track" class="range-slider" min="0.4" max="0.95" step="0.05" value="0.70">
+                        </div>
+                        <div class="slider-wrapper">
+                            <div class="slider-label-row"><span>Brush EMA Smoothing</span><span id="lbl-cfg-smoothing" class="val">0.25</span></div>
+                            <input type="range" id="cfg-smoothing" class="range-slider" min="0.05" max="0.8" step="0.05" value="0.25">
+                        </div>
+                        <div class="slider-wrapper">
+                            <div class="slider-label-row"><span>Pinch Click Distance Threshold</span><span id="lbl-cfg-pinch" class="val">0.18</span></div>
+                            <input type="range" id="cfg-pinch" class="range-slider" min="0.05" max="0.30" step="0.01" value="0.18">
+                        </div>
+                        <div class="slider-wrapper">
+                            <div class="slider-label-row"><span>Top Bounding Margin</span><span id="lbl-cfg-top" class="val">0.15</span></div>
+                            <input type="range" id="cfg-top" class="range-slider" min="0.0" max="0.4" step="0.05" value="0.15">
+                        </div>
+                        <div class="slider-wrapper">
+                            <div class="slider-label-row"><span>Bottom Bounding Margin</span><span id="lbl-cfg-bottom" class="val">0.75</span></div>
+                            <input type="range" id="cfg-bottom" class="range-slider" min="0.6" max="1.0" step="0.05" value="0.75">
+                        </div>
+                        <div class="slider-wrapper">
+                            <div class="slider-label-row"><span>Left Bounding Margin</span><span id="lbl-cfg-left" class="val">0.15</span></div>
+                            <input type="range" id="cfg-left" class="range-slider" min="0.0" max="0.4" step="0.05" value="0.15">
+                        </div>
+                        <div class="slider-wrapper">
+                            <div class="slider-label-row"><span>Right Bounding Margin</span><span id="lbl-cfg-right" class="val">0.85</span></div>
+                            <input type="range" id="cfg-right" class="range-slider" min="0.6" max="1.0" step="0.05" value="0.85">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass-card" style="display:flex; flex-direction:column; gap:10px;">
+                    <h3 style="margin-top:0; font-family:'Outfit',sans-serif; color:var(--secondary);">📐 Tracking Region Active Area</h3>
+                    <div style="flex:1; display:flex; align-items:center; justify-content:center; background:#020617; border-radius:8px; border:1px solid var(--border-color); padding:10px; box-sizing:border-box; height:200px;">
+                        <svg id="active-box-svg-preview" style="width:100%; height:100%;">
+                            <rect x="0" y="0" width="100%" height="100%" fill="none" />
+                            <rect id="svg-active-box" x="20" y="20" width="160" height="120" fill="rgba(6,182,212,0.12)" stroke="var(--secondary)" stroke-width="2" stroke-dasharray="6,4" />
+                            <text x="50%" y="53%" fill="var(--secondary)" font-family="Outfit" font-size="10" font-weight="600" text-anchor="middle">ACTIVE COORDINATES BOUNDS</text>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        /* AUDIO_JS */
+        
+        /* PARTICLES_JS */
+        
+        /* CALIBRATION_JS */
+        
+        /* SHAPES_JS */
+        
+        /* GESTURES_JS */
+        
+        /* APP_JS */
+    </script>
+</body>
+</html>
