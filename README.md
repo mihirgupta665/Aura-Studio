@@ -102,7 +102,7 @@ Built around **MediaPipe hand tracking, HTML5 Canvas, JavaScript, Web APIs, and 
 ## 07 — Replay
 
 <p align="center">
-  <img src="./screenshots/7_Replay.png" alt="AURA Studio Replay" width="100%">
+  <img src="./screenshots/7_Replay_Pixels.png" alt="AURA Studio Replay" width="100%">
 </p>
 
 ---
